@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>المنصة الأكاديمية - مواد حسب السنوات + Supabase</title>
+  <title>المنصة الأكاديمية — مواد حسب السنوات + ملفات مع Supabase</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&display=swap" rel="stylesheet">
@@ -13,1160 +13,686 @@
     }
     *{font-family:'Cairo',sans-serif}
     .gradient-bg{background:linear-gradient(135deg,#667eea 0%,#764ba2 100%)}
-    .gradient-card{background:linear-gradient(135deg,#667eea 0%,#764ba2 100%)}
-    .glass-effect{background:rgba(255,255,255,0.95);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.2)}
-    .card-hover{transition:all .3s ease;transform:translateY(0)}
-    .card-hover:hover{transform:translateY(-6px);box-shadow:0 16px 32px rgba(0,0,0,.12)}
-    .nav-item.active{background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:#fff;transform:scale(1.03)}
-    .modal{animation:modalFadeIn .25s ease-out}
-    @keyframes modalFadeIn{from{opacity:0;transform:scale(.96)}to{opacity:1;transform:scale(1)}}
-    .progress-bar{transition:width .6s ease}
-    .notification{transition:transform .5s ease}
+    .glass{background:rgba(255,255,255,.95);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.2)}
+    .card{transition:transform .25s ease,box-shadow .25s ease}
+    .card:hover{transform:translateY(-4px);box-shadow:0 14px 30px rgba(0,0,0,.12)}
+    .hidden{display:none!important} /* لضمان إخفاء شاشة التحميل حتى لو فشل CDN */
   </style>
 </head>
-<body class="bg-gray-50">
-  <!-- Loading -->
+<body class="bg-slate-50">
+  <!-- شاشة تحميل آمنة -->
   <div id="loadingScreen" class="fixed inset-0 gradient-bg z-50 flex items-center justify-center">
     <div class="text-center text-white">
-      <div class="mb-4">
-        <i class="fas fa-graduation-cap text-6xl"></i>
+      <div class="mb-5"><i class="fas fa-graduation-cap text-6xl"></i></div>
+      <div class="w-64 h-2 bg-white/25 rounded-full mx-auto overflow-hidden">
+        <div id="loadingBar" class="h-2 bg-white rounded-full" style="width:0%"></div>
       </div>
-      <div class="w-64 bg-white/20 rounded-full h-2 mx-auto">
-        <div id="loadingProgress" class="bg-white h-2 rounded-full progress-bar" style="width:0%"></div>
-      </div>
-      <p class="opacity-90 mt-4">جاري التحميل...</p>
+      <p class="mt-3 opacity-95">جاري التحميل...</p>
     </div>
   </div>
 
-  <!-- Landing -->
-  <div id="landingPage" class="min-h-screen gradient-bg hidden">
-    <nav class="glass-effect p-4">
-      <div class="container mx-auto flex justify-between items-center">
-        <div class="flex items-center">
-          <i class="fas fa-graduation-cap text-2xl text-purple-600 ml-3"></i>
-          <span class="text-xl font-bold text-gray-800">المنصة الأكاديمية</span>
+  <!-- صفحة ترحيب -->
+  <div id="landing" class="min-h-screen gradient-bg hidden">
+    <nav class="glass p-4">
+      <div class="max-w-6xl mx-auto flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <i class="fas fa-graduation-cap text-2xl text-purple-600"></i>
+          <span class="text-xl font-bold text-slate-800">المنصة الأكاديمية</span>
         </div>
-        <div class="flex gap-3">
-          <button onclick="showLoginForm()" class="bg-white text-purple-600 px-6 py-2 rounded-full font-semibold hover:bg-gray-100">تسجيل الدخول</button>
-          <button onclick="showSignupForm()" class="border-2 border-white text-white px-6 py-2 rounded-full font-semibold hover:bg-white hover:text-purple-600">إنشاء حساب</button>
+        <div class="flex gap-2">
+          <button onclick="openSupabaseSettings()" class="px-4 py-2 rounded-lg text-purple-600 hover:bg-purple-50">
+            <i class="fas fa-database ml-1"></i> إعدادات Supabase
+          </button>
+          <button onclick="openLogin()" class="px-4 py-2 rounded-lg bg-white text-purple-600 hover:bg-slate-100 font-semibold">
+            تسجيل الدخول
+          </button>
         </div>
       </div>
     </nav>
 
-    <section class="container mx-auto px-4 py-20 text-center text-white">
-      <h1 class="text-5xl md:text-6xl font-bold mb-4"> المنصة الأكاديمية - لجنة الطب والجراحة البيطرية</h1>
-      <p class="text-xl opacity-95 mb-8">مرحبًا بك في الموقع الرسمي للجنة الطب والجراحة البيطرية 👋
-رفيقك الدراسي المثالي مع جميع المصادر اللازمة لرحلتك الأكاديمية 🌱</p>
-      <button onclick="showLoginForm()" class="bg-white text-purple-600 px-10 py-4 rounded-full font-bold hover:bg-gray-100">ابدأ الآن</button>
+    <section class="max-w-6xl mx-auto px-4 py-20 text-center text-white">
+      <h1 class="text-5xl md:text-6xl font-bold mb-4">سنوات → فصول → مواد → ملفات</h1>
+      <p class="text-xl opacity-95 mb-8">أضف المواد وأرفق سلايدات/تلخيصات/ريكوردات. نحفظ المعرّفات من Supabase لمنع أخطاء الربط.</p>
+      <button onclick="openLogin()" class="bg-white text-purple-600 px-8 py-3 rounded-full font-bold hover:bg-slate-100">ابدأ الآن</button>
     </section>
   </div>
 
-  <!-- Auth: Login -->
-  <div id="loginForm" class="fixed inset-0 bg-black/50 z-40 hidden items-center justify-center">
-    <div class="glass-effect rounded-2xl p-8 max-w-md w-full mx-4 modal">
-      <h3 class="text-3xl font-bold text-gray-800 mb-2 text-center">تسجيل الدخول</h3>
-      <p class="text-gray-600 text-center mb-6">استخدم admin@vet.edu لتجربة صلاحيات المدير</p>
-      <form onsubmit="handleLogin(event)" class="space-y-4">
-        <div>
-          <label class="block text-sm text-gray-700 mb-1">البريد الإلكتروني</label>
-          <input id="loginEmail" type="email" required class="w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500" placeholder="example@vet.edu">
-        </div>
-        <div>
-          <label class="block text-sm text-gray-700 mb-1">كلمة المرور</label>
-          <input id="loginPassword" type="password" required class="w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500" placeholder="••••••••">
-        </div>
-        <button class="w-full gradient-card text-white py-3 rounded-xl font-bold hover:opacity-90">دخول</button>
-        <button type="button" onclick="hideAuthForms()" class="w-full text-gray-600 hover:text-gray-800">إلغاء</button>
-      </form>
-    </div>
-  </div>
-
-  <!-- Auth: Signup -->
-  <div id="signupForm" class="fixed inset-0 bg-black/50 z-40 hidden items-center justify-center">
-    <div class="glass-effect rounded-2xl p-8 max-w-md w-full mx-4 modal">
-      <h3 class="text-3xl font-bold text-gray-800 mb-6 text-center">إنشاء حساب</h3>
-      <form onsubmit="handleSignup(event)" class="space-y-4">
-        <div>
-          <label class="block text-sm text-gray-700 mb-1">الاسم الكامل</label>
-          <input id="signupName" required class="w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500">
-        </div>
-        <div>
-          <label class="block text-sm text-gray-700 mb-1">البريد الإلكتروني</label>
-          <input id="signupEmail" type="email" required class="w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500">
-        </div>
-        <div>
-          <label class="block text-sm text-gray-700 mb-1">السنة الدراسية</label>
-          <select id="signupYear" required class="w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500">
-            <option value="">اختر السنة</option>
-            <option value="1">الأولى</option><option value="2">الثانية</option><option value="3">الثالثة</option>
-            <option value="4">الرابعة</option><option value="5">الخامسة</option><option value="6">السادسة</option>
-          </select>
-        </div>
-        <div>
-          <label class="block text-sm text-gray-700 mb-1">كلمة المرور</label>
-          <input id="signupPassword" type="password" required class="w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500">
-        </div>
-        <button class="w-full gradient-card text-white py-3 rounded-xl font-bold hover:opacity-90">إنشاء</button>
-        <button type="button" onclick="hideAuthForms()" class="w-full text-gray-600 hover:text-gray-800">إلغاء</button>
-      </form>
-    </div>
-  </div>
-
-  <!-- Dashboard -->
-  <div id="dashboard" class="hidden">
-    <header class="glass-effect sticky top-0 z-30 shadow-lg border-b border-gray-200">
-      <div class="flex items-center justify-between px-6 py-4">
+  <!-- لوحة التحكم -->
+  <div id="app" class="hidden">
+    <!-- شريط علوي -->
+    <header class="glass sticky top-0 z-30">
+      <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
         <div class="flex items-center gap-2">
-          <button onclick="toggleSidebar()" class="lg:hidden text-gray-600 hover:text-gray-800 p-2 rounded-lg hover:bg-gray-100">
+          <button onclick="toggleSidebar()" class="lg:hidden p-2 text-slate-600 hover:bg-slate-100 rounded-lg">
             <i class="fas fa-bars text-xl"></i>
           </button>
-          <div class="hidden md:flex items-center relative">
-            <input type="text" placeholder="ابحث..." class="pl-10 pr-4 py-2 border rounded-full focus:outline-none focus:ring-2 focus:ring-purple-500">
-            <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
-          </div>
+          <span class="text-lg font-bold text-slate-800">لوحة المواد</span>
         </div>
         <div class="flex items-center gap-2">
-          <span id="supabaseStatusBadge" class="px-3 py-1 text-xs rounded-full bg-gray-200 text-gray-700">غير متصل</span>
-          <button onclick="openSupabaseSettings()" class="px-3 py-2 rounded-lg text-purple-600 hover:bg-purple-50"><i class="fas fa-database mr-1"></i> إعدادات Supabase</button>
-          <button onclick="toggleTheme()" class="p-2 text-gray-600 hover:text-gray-800 rounded-lg hover:bg-gray-100"><i id="themeIcon" class="fas fa-moon text-xl"></i></button>
-          <div class="relative">
-            <button onclick="toggleUserMenu()" class="flex items-center text-gray-700 hover:text-gray-900 p-2 rounded-lg hover:bg-gray-100">
-              <i class="fas fa-chevron-down ml-2 text-sm"></i>
-              <span id="userName" class="ml-2 hidden md:block font-semibold">المستخدم</span>
-              <i class="fas fa-user-circle text-2xl"></i>
-            </button>
-            <div id="userMenu" class="absolute right-0 mt-2 w-56 glass-effect rounded-xl shadow-lg hidden">
-              <div class="py-2">
-                <a href="#" onclick="openSupabaseSettings()" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-lg mx-2"><i class="fas fa-database mr-2"></i>إعدادات Supabase</a>
-                <hr class="my-2 mx-2">
-                <a href="#" onclick="logout()" class="block px-4 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg mx-2"><i class="fas fa-sign-out-alt mr-2"></i>تسجيل الخروج</a>
-              </div>
-            </div>
-          </div>
+          <span id="connBadge" class="px-3 py-1 rounded-full text-xs bg-slate-200 text-slate-700">غير متصل</span>
+          <button onclick="openSupabaseSettings()" class="px-3 py-2 rounded-lg text-purple-600 hover:bg-purple-50">
+            <i class="fas fa-database ml-1"></i> إعدادات Supabase
+          </button>
+          <button onclick="logout()" class="px-3 py-2 rounded-lg text-rose-600 hover:bg-rose-50">
+            <i class="fas fa-sign-out-alt ml-1"></i> خروج
+          </button>
         </div>
       </div>
     </header>
 
-    <div class="flex">
-      <!-- Sidebar -->
-      <aside id="sidebar" class="glass-effect w-64 min-h-screen shadow-xl lg:translate-x-0 fixed lg:relative z-20 translate-x-full lg:translate-x-0 right-0 lg:right-auto">
-        <nav class="p-6">
-          <div class="mb-8 text-center">
-            <div id="userAvatar" class="w-16 h-16 gradient-card rounded-full flex items-center justify-center mx-auto mb-3">
-              <i class="fas fa-user text-2xl text-white"></i>
-            </div>
-            <h3 id="sidebarUserName" class="font-bold text-gray-800">مرحباً بك</h3>
-            <p id="userRole" class="text-sm text-gray-600">طالب</p>
+    <div class="max-w-6xl mx-auto px-4 py-6 grid lg:grid-cols-4 gap-6">
+      <!-- جانب -->
+      <aside id="sidebar" class="lg:col-span-1 glass p-4 rounded-2xl shadow card hidden lg:block">
+        <div class="text-center mb-4">
+          <div class="w-16 h-16 mx-auto rounded-full bg-gradient-to-br from-purple-500 to-indigo-500 text-white flex items-center justify-center text-2xl">
+            <i class="fas fa-user"></i>
           </div>
-          <ul class="space-y-3">
-            <li><button onclick="showSection('home')" class="nav-item active w-full text-right px-4 py-3 rounded-xl hover:bg-purple-50 hover:text-purple-600 flex items-center"><i class="fas fa-home ml-3"></i><span class="font-semibold">الرئيسية</span></button></li>
-            <li><button onclick="showSection('subjects')" class="nav-item w-full text-right px-4 py-3 rounded-xl hover:bg-purple-50 hover:text-purple-600 flex items-center"><i class="fas fa-book ml-3"></i><span class="font-semibold">المواد الدراسية</span></button></li>
-            <li><button onclick="showSection('tools')" class="nav-item w-full text-right px-4 py-3 rounded-xl hover:bg-purple-50 hover:text-purple-600 flex items-center"><i class="fas fa-tools ml-3"></i><span class="font-semibold">الأدوات</span></button></li>
-            <li><button onclick="showSection('messages')" class="nav-item w-full text-right px-4 py-3 rounded-xl hover:bg-purple-50 hover:text-purple-600 flex items-center"><i class="fas fa-comments ml-3"></i><span class="font-semibold">الرسائل</span></button></li>
-            <li id="adminNav" class="hidden"><button onclick="showSection('admin')" class="nav-item w-full text-right px-4 py-3 rounded-xl hover:bg-red-50 hover:text-red-600 flex items-center"><i class="fas fa-shield-alt ml-3"></i><span class="font-semibold">لوحة الإدارة</span></button></li>
-          </ul>
+          <div id="userName" class="font-bold text-slate-800 mt-2">المستخدم</div>
+          <div id="userRole" class="text-sm text-slate-500">طالب</div>
+        </div>
 
-          <div class="mt-8 p-4 gradient-card rounded-xl text-white">
-            <h4 class="font-bold mb-3">المزامنة</h4>
-            <div class="space-y-2">
-              <div class="flex gap-2">
-                <button onclick="syncSubjects()" class="flex-1 bg-white/10 hover:bg-white/20 px-3 py-2 rounded-lg">مزامنة المواد</button>
-                <button onclick="syncFilesPreview()" class="flex-1 bg-white/10 hover:bg-white/20 px-3 py-2 rounded-lg">تحقق الملفات</button>
-              </div>
-              <label class="inline-flex items-center">
-                <input type="checkbox" id="realtimeToggle" class="ml-2" onchange="toggleRealtime(this.checked)">
-                <span class="text-sm">تحديث فوري للرسائل</span>
-              </label>
+        <div class="space-y-2">
+          <button onclick="showSection('subjects')" class="w-full text-right px-4 py-2 rounded-lg bg-purple-600 text-white hover:bg-purple-700">
+            <i class="fas fa-book ml-2"></i> المواد
+          </button>
+          <button onclick="syncSubjectsPull()" class="w-full text-right px-4 py-2 rounded-lg bg-slate-800 text-white hover:bg-slate-900">
+            <i class="fas fa-rotate ml-2"></i> مزامنة المواد
+          </button>
+          <button onclick="pushOfflineSubjectsToSupabase()" class="w-full text-right px-4 py-2 rounded-lg bg-emerald-600 text-white hover:bg-emerald-700">
+            <i class="fas fa-cloud-arrow-up ml-2"></i> رفع المواد غير المتزامنة
+          </button>
+        </div>
+
+        <div class="mt-6 p-4 bg-gradient-to-br from-purple-500 to-indigo-500 rounded-xl text-white">
+          <div class="flex items-center justify-between">
+            <div>
+              <div class="text-sm opacity-90">عدد المواد</div>
+              <div id="subjectsCount" class="text-2xl font-bold">0</div>
+            </div>
+            <div>
+              <div class="text-sm opacity-90">عدد الملفات</div>
+              <div id="filesCount" class="text-2xl font-bold">0</div>
             </div>
           </div>
-        </nav>
+        </div>
       </aside>
 
-      <!-- Main -->
-      <main class="flex-1 p-6 overflow-y-auto">
-        <!-- Home -->
-        <section id="homeSection" class="section">
-          <div class="mb-8">
-            <h2 class="text-4xl font-bold text-gray-800 mb-2">مرحباً بك</h2>
-            <p class="text-gray-600">كل شيء منظم: سنوات، فصول، مواد وموارد. فعّل Supabase من الإعدادات للمزامنة.</p>
-          </div>
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div class="glass-effect rounded-2xl p-6 card-hover">
-              <div class="flex items-center">
-                <div class="w-12 h-12 gradient-card rounded-xl flex items-center justify-center"><i class="fas fa-database text-white"></i></div>
-                <div class="mr-4">
-                  <div id="syncStatusText" class="text-2xl font-bold text-gray-800">Offline</div>
-                  <div class="text-gray-600">حالة الاتصال</div>
-                </div>
-              </div>
-              <div class="mt-4 flex gap-2">
-                <button onclick="openSupabaseSettings()" class="px-3 py-2 rounded-lg bg-purple-600 text-white hover:bg-purple-700">إعدادات</button>
-                <button onclick="syncAll()" class="px-3 py-2 rounded-lg bg-green-600 text-white hover:bg-green-700">مزامنة كاملة</button>
-              </div>
+      <!-- المحتوى -->
+      <main class="lg:col-span-3">
+        <!-- المواد -->
+        <section id="subjectsSection" class="glass rounded-2xl p-4 md:p-6 shadow card">
+          <div class="flex items-center justify-between mb-4">
+            <div>
+              <h2 class="text-2xl font-bold text-slate-800">المواد الدراسية</h2>
+              <p class="text-slate-600 text-sm">سنوات 1–6، كل سنة ثلاثة فصول. وقسم الجامعة (إجباري/حر).</p>
             </div>
-            <div class="glass-effect rounded-2xl p-6 card-hover">
-              <div class="flex items-center">
-                <div class="w-12 h-12 bg-blue-500 rounded-xl flex items-center justify-center"><i class="fas fa-book text-white"></i></div>
-                <div class="mr-4">
-                  <div id="subjectsCounter" class="text-2xl font-bold text-gray-800">0</div>
-                  <div class="text-gray-600">مادة</div>
-                </div>
-              </div>
-            </div>
-            <div class="glass-effect rounded-2xl p-6 card-hover">
-              <div class="flex items-center">
-                <div class="w-12 h-12 bg-orange-500 rounded-xl flex items-center justify-center"><i class="fas fa-file text-white"></i></div>
-                <div class="mr-4">
-                  <div id="filesCounter" class="text-2xl font-bold text-gray-800">0</div>
-                  <div class="text-gray-600">ملف</div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <!-- Subjects -->
-        <section id="subjectsSection" class="section hidden">
-          <div class="mb-8">
-            <h2 class="text-4xl font-bold text-gray-800 mb-2">المواد الدراسية</h2>
-            <p class="text-gray-600">مقسمة حسب السنوات والفصول، وقسم خاص لمواد الجامعة.</p>
-          </div>
-
-          <!-- Main Categories -->
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-            <!-- Academic Years -->
-            <div class="glass-effect rounded-2xl p-6 card-hover cursor-pointer" onclick="toggleCategory('academicYears')">
-              <div class="text-center">
-                <div class="w-16 h-16 gradient-card rounded-2xl flex items-center justify-center mx-auto mb-4"><i class="fas fa-graduation-cap text-3xl text-white"></i></div>
-                <h3 class="text-2xl font-bold text-gray-800 mb-2">السنوات الدراسية</h3>
-                <p class="text-gray-600 mb-2">السنة 1 إلى السنة 6، بكل فصل</p>
-                <div class="text-purple-600 font-semibold">عرض السنوات <i id="academicYearsIcon" class="fas fa-chevron-down mr-1"></i></div>
-              </div>
-            </div>
-            <!-- University Subjects -->
-            <div class="glass-effect rounded-2xl p-6 card-hover cursor-pointer" onclick="toggleCategory('universitySubjects')">
-              <div class="text-center">
-                <div class="w-16 h-16 bg-green-500 rounded-2xl flex items-center justify-center mx-auto mb-4"><i class="fas fa-university text-3xl text-white"></i></div>
-                <h3 class="text-2xl font-bold text-gray-800 mb-2">مواد الجامعة</h3>
-                <p class="text-gray-600 mb-2">مواد إجبارية ومواد حرة</p>
-                <div class="text-green-600 font-semibold">عرض المواد <i id="universitySubjectsIcon" class="fas fa-chevron-down mr-1"></i></div>
-              </div>
+            <div class="text-right">
+              <div class="text-xs text-slate-500">حالة الإضافة</div>
+              <div id="addModeState" class="text-sm font-semibold text-rose-600">المستخدمون: عرض فقط</div>
             </div>
           </div>
 
-          <!-- Academic Years Content -->
-          <div id="academicYearsContent" class="hidden">
-            <h3 class="text-2xl font-bold text-gray-800 mb-4">السنوات الدراسية</h3>
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              <!-- Year Cards 1..6 -->
-              <div class="glass-effect rounded-2xl p-6">
-                <div class="text-center mb-4">
-                  <div class="w-12 h-12 bg-blue-500 rounded-xl flex items-center justify-center mx-auto mb-3"><i class="fas fa-book text-white"></i></div>
-                  <h4 class="text-xl font-bold text-gray-800">السنة الأولى</h4>
-                </div>
-                <div class="space-y-3">
-                  <button onclick="toggleSemester('year1','semester1')" class="w-full bg-blue-100 text-blue-800 py-2 px-4 rounded-lg hover:bg-blue-200 flex items-center justify-between">
-                    <span>الفصل الأول</span><i id="year1semester1Icon" class="fas fa-chevron-down"></i>
-                  </button>
-                  <div id="year1semester1Content" class="hidden space-y-2 pr-2">
-                    <div id="year1semester1Subjects" class="space-y-2"></div>
-                    <button id="addBtn_year1_semester1" onclick="showAddSubjectModal('academic','year1','semester1')" class="hidden w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600"><i class="fas fa-plus ml-1"></i> إضافة مادة</button>
-                  </div>
-
-                  <button onclick="toggleSemester('year1','semester2')" class="w-full bg-blue-100 text-blue-800 py-2 px-4 rounded-lg hover:bg-blue-200 flex items-center justify-between">
-                    <span>الفصل الثاني</span><i id="year1semester2Icon" class="fas fa-chevron-down"></i>
-                  </button>
-                  <div id="year1semester2Content" class="hidden space-y-2 pr-2">
-                    <div id="year1semester2Subjects" class="space-y-2"></div>
-                    <button id="addBtn_year1_semester2" onclick="showAddSubjectModal('academic','year1','semester2')" class="hidden w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600"><i class="fas fa-plus ml-1"></i> إضافة مادة</button>
-                  </div>
-
-                  <button onclick="toggleSemester('year1','summer')" class="w-full bg-blue-100 text-blue-800 py-2 px-4 rounded-lg hover:bg-blue-200 flex items-center justify-between">
-                    <span>فصل صيفي</span><i id="year1summerIcon" class="fas fa-chevron-down"></i>
-                  </button>
-                  <div id="year1summerContent" class="hidden space-y-2 pr-2">
-                    <div id="year1summerSubjects" class="space-y-2"></div>
-                    <button id="addBtn_year1_summer" onclick="showAddSubjectModal('academic','year1','summer')" class="hidden w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600"><i class="fas fa-plus ml-1"></i> إضافة مادة</button>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Duplicate template with different colors/titles for years 2..6 -->
-              <div class="glass-effect rounded-2xl p-6">
-                <div class="text-center mb-4">
-                  <div class="w-12 h-12 bg-green-500 rounded-xl flex items-center justify-center mx-auto mb-3"><i class="fas fa-book text-white"></i></div>
-                  <h4 class="text-xl font-bold text-gray-800">السنة الثانية</h4>
-                </div>
-                <div class="space-y-3">
-                  <button onclick="toggleSemester('year2','semester1')" class="w-full bg-green-100 text-green-800 py-2 px-4 rounded-lg hover:bg-green-200 flex items-center justify-between">
-                    <span>الفصل الأول</span><i id="year2semester1Icon" class="fas fa-chevron-down"></i>
-                  </button>
-                  <div id="year2semester1Content" class="hidden space-y-2 pr-2">
-                    <div id="year2semester1Subjects" class="space-y-2"></div>
-                    <button id="addBtn_year2_semester1" onclick="showAddSubjectModal('academic','year2','semester1')" class="hidden w-full bg-green-500 text-white py-2 rounded-lg hover:bg-green-600"><i class="fas fa-plus ml-1"></i> إضافة مادة</button>
-                  </div>
-
-                  <button onclick="toggleSemester('year2','semester2')" class="w-full bg-green-100 text-green-800 py-2 px-4 rounded-lg hover:bg-green-200 flex items-center justify-between">
-                    <span>الفصل الثاني</span><i id="year2semester2Icon" class="fas fa-chevron-down"></i>
-                  </button>
-                  <div id="year2semester2Content" class="hidden space-y-2 pr-2">
-                    <div id="year2semester2Subjects" class="space-y-2"></div>
-                    <button id="addBtn_year2_semester2" onclick="showAddSubjectModal('academic','year2','semester2')" class="hidden w-full bg-green-500 text-white py-2 rounded-lg hover:bg-green-600"><i class="fas fa-plus ml-1"></i> إضافة مادة</button>
-                  </div>
-
-                  <button onclick="toggleSemester('year2','summer')" class="w-full bg-green-100 text-green-800 py-2 px-4 rounded-lg hover:bg-green-200 flex items-center justify-between">
-                    <span>فصل صيفي</span><i id="year2summerIcon" class="fas fa-chevron-down"></i>
-                  </button>
-                  <div id="year2summerContent" class="hidden space-y-2 pr-2">
-                    <div id="year2summerSubjects" class="space-y-2"></div>
-                    <button id="addBtn_year2_summer" onclick="showAddSubjectModal('academic','year2','summer')" class="hidden w-full bg-green-500 text-white py-2 rounded-lg hover:bg-green-600"><i class="fas fa-plus ml-1"></i> إضافة مادة</button>
-                  </div>
-                </div>
-              </div>
-
-              <div class="glass-effect rounded-2xl p-6">
-                <div class="text-center mb-4">
-                  <div class="w-12 h-12 bg-purple-500 rounded-xl flex items-center justify-center mx-auto mb-3"><i class="fas fa-book text-white"></i></div>
-                  <h4 class="text-xl font-bold text-gray-800">السنة الثالثة</h4>
-                </div>
-                <div class="space-y-3">
-                  <button onclick="toggleSemester('year3','semester1')" class="w-full bg-purple-100 text-purple-800 py-2 px-4 rounded-lg hover:bg-purple-200 flex items-center justify-between">
-                    <span>الفصل الأول</span><i id="year3semester1Icon" class="fas fa-chevron-down"></i>
-                  </button>
-                  <div id="year3semester1Content" class="hidden space-y-2 pr-2">
-                    <div id="year3semester1Subjects" class="space-y-2"></div>
-                    <button id="addBtn_year3_semester1" onclick="showAddSubjectModal('academic','year3','semester1')" class="hidden w-full bg-purple-500 text-white py-2 rounded-lg hover:bg-purple-600"><i class="fas fa-plus ml-1"></i> إضافة مادة</button>
-                  </div>
-
-                  <button onclick="toggleSemester('year3','semester2')" class="w-full bg-purple-100 text-purple-800 py-2 px-4 rounded-lg hover:bg-purple-200 flex items-center justify-between">
-                    <span>الفصل الثاني</span><i id="year3semester2Icon" class="fas fa-chevron-down"></i>
-                  </button>
-                  <div id="year3semester2Content" class="hidden space-y-2 pr-2">
-                    <div id="year3semester2Subjects" class="space-y-2"></div>
-                    <button id="addBtn_year3_semester2" onclick="showAddSubjectModal('academic','year3','semester2')" class="hidden w-full bg-purple-500 text-white py-2 rounded-lg hover:bg-purple-600"><i class="fas fa-plus ml-1"></i> إضافة مادة</button>
-                  </div>
-
-                  <button onclick="toggleSemester('year3','summer')" class="w-full bg-purple-100 text-purple-800 py-2 px-4 rounded-lg hover:bg-purple-200 flex items-center justify-between">
-                    <span>فصل صيفي</span><i id="year3summerIcon" class="fas fa-chevron-down"></i>
-                  </button>
-                  <div id="year3summerContent" class="hidden space-y-2 pr-2">
-                    <div id="year3summerSubjects" class="space-y-2"></div>
-                    <button id="addBtn_year3_summer" onclick="showAddSubjectModal('academic','year3','summer')" class="hidden w-full bg-purple-500 text-white py-2 rounded-lg hover:bg-purple-600"><i class="fas fa-plus ml-1"></i> إضافة مادة</button>
-                  </div>
-                </div>
-              </div>
-
-              <div class="glass-effect rounded-2xl p-6">
-                <div class="text-center mb-4">
-                  <div class="w-12 h-12 bg-red-500 rounded-xl flex items-center justify-center mx-auto mb-3"><i class="fas fa-book text-white"></i></div>
-                  <h4 class="text-xl font-bold text-gray-800">السنة الرابعة</h4>
-                </div>
-                <div class="space-y-3">
-                  <button onclick="toggleSemester('year4','semester1')" class="w-full bg-red-100 text-red-800 py-2 px-4 rounded-lg hover:bg-red-200 flex items-center justify-between">
-                    <span>الفصل الأول</span><i id="year4semester1Icon" class="fas fa-chevron-down"></i>
-                  </button>
-                  <div id="year4semester1Content" class="hidden space-y-2 pr-2">
-                    <div id="year4semester1Subjects" class="space-y-2"></div>
-                    <button id="addBtn_year4_semester1" onclick="showAddSubjectModal('academic','year4','semester1')" class="hidden w-full bg-red-500 text-white py-2 rounded-lg hover:bg-red-600"><i class="fas fa-plus ml-1"></i> إضافة مادة</button>
-                  </div>
-
-                  <button onclick="toggleSemester('year4','semester2')" class="w-full bg-red-100 text-red-800 py-2 px-4 rounded-lg hover:bg-red-200 flex items-center justify-between">
-                    <span>الفصل الثاني</span><i id="year4semester2Icon" class="fas fa-chevron-down"></i>
-                  </button>
-                  <div id="year4semester2Content" class="hidden space-y-2 pr-2">
-                    <div id="year4semester2Subjects" class="space-y-2"></div>
-                    <button id="addBtn_year4_semester2" onclick="showAddSubjectModal('academic','year4','semester2')" class="hidden w-full bg-red-500 text-white py-2 rounded-lg hover:bg-red-600"><i class="fas fa-plus ml-1"></i> إضافة مادة</button>
-                  </div>
-
-                  <button onclick="toggleSemester('year4','summer')" class="w-full bg-red-100 text-red-800 py-2 px-4 rounded-lg hover:bg-red-200 flex items-center justify-between">
-                    <span>فصل صيفي</span><i id="year4summerIcon" class="fas fa-chevron-down"></i>
-                  </button>
-                  <div id="year4summerContent" class="hidden space-y-2 pr-2">
-                    <div id="year4summerSubjects" class="space-y-2"></div>
-                    <button id="addBtn_year4_summer" onclick="showAddSubjectModal('academic','year4','summer')" class="hidden w-full bg-red-500 text-white py-2 rounded-lg hover:bg-red-600"><i class="fas fa-plus ml-1"></i> إضافة مادة</button>
-                  </div>
-                </div>
-              </div>
-
-              <div class="glass-effect rounded-2xl p-6">
-                <div class="text-center mb-4">
-                  <div class="w-12 h-12 bg-orange-500 rounded-xl flex items-center justify-center mx-auto mb-3"><i class="fas fa-book text-white"></i></div>
-                  <h4 class="text-xl font-bold text-gray-800">السنة الخامسة</h4>
-                </div>
-                <div class="space-y-3">
-                  <button onclick="toggleSemester('year5','semester1')" class="w-full bg-orange-100 text-orange-800 py-2 px-4 rounded-lg hover:bg-orange-200 flex items-center justify-between">
-                    <span>الفصل الأول</span><i id="year5semester1Icon" class="fas fa-chevron-down"></i>
-                  </button>
-                  <div id="year5semester1Content" class="hidden space-y-2 pr-2">
-                    <div id="year5semester1Subjects" class="space-y-2"></div>
-                    <button id="addBtn_year5_semester1" onclick="showAddSubjectModal('academic','year5','semester1')" class="hidden w-full bg-orange-500 text-white py-2 rounded-lg hover:bg-orange-600"><i class="fas fa-plus ml-1"></i> إضافة مادة</button>
-                  </div>
-
-                  <button onclick="toggleSemester('year5','semester2')" class="w-full bg-orange-100 text-orange-800 py-2 px-4 rounded-lg hover:bg-orange-200 flex items-center justify-between">
-                    <span>الفصل الثاني</span><i id="year5semester2Icon" class="fas fa-chevron-down"></i>
-                  </button>
-                  <div id="year5semester2Content" class="hidden space-y-2 pr-2">
-                    <div id="year5semester2Subjects" class="space-y-2"></div>
-                    <button id="addBtn_year5_semester2" onclick="showAddSubjectModal('academic','year5','semester2')" class="hidden w-full bg-orange-500 text-white py-2 rounded-lg hover:bg-orange-600"><i class="fas fa-plus ml-1"></i> إضافة مادة</button>
-                  </div>
-
-                  <button onclick="toggleSemester('year5','summer')" class="w-full bg-orange-100 text-orange-800 py-2 px-4 rounded-lg hover:bg-orange-200 flex items-center justify-between">
-                    <span>فصل صيفي</span><i id="year5summerIcon" class="fas fa-chevron-down"></i>
-                  </button>
-                  <div id="year5summerContent" class="hidden space-y-2 pr-2">
-                    <div id="year5summerSubjects" class="space-y-2"></div>
-                    <button id="addBtn_year5_summer" onclick="showAddSubjectModal('academic','year5','summer')" class="hidden w-full bg-orange-500 text-white py-2 rounded-lg hover:bg-orange-600"><i class="fas fa-plus ml-1"></i> إضافة مادة</button>
-                  </div>
-                </div>
-              </div>
-
-              <div class="glass-effect rounded-2xl p-6">
-                <div class="text-center mb-4">
-                  <div class="w-12 h-12 bg-indigo-500 rounded-xl flex items-center justify-center mx-auto mb-3"><i class="fas fa-book text-white"></i></div>
-                  <h4 class="text-xl font-bold text-gray-800">السنة السادسة</h4>
-                </div>
-                <div class="space-y-3">
-                  <button onclick="toggleSemester('year6','semester1')" class="w-full bg-indigo-100 text-indigo-800 py-2 px-4 rounded-lg hover:bg-indigo-200 flex items-center justify-between">
-                    <span>الفصل الأول</span><i id="year6semester1Icon" class="fas fa-chevron-down"></i>
-                  </button>
-                  <div id="year6semester1Content" class="hidden space-y-2 pr-2">
-                    <div id="year6semester1Subjects" class="space-y-2"></div>
-                    <button id="addBtn_year6_semester1" onclick="showAddSubjectModal('academic','year6','semester1')" class="hidden w-full bg-indigo-500 text-white py-2 rounded-lg hover:bg-indigo-600"><i class="fas fa-plus ml-1"></i> إضافة مادة</button>
-                  </div>
-
-                  <button onclick="toggleSemester('year6','semester2')" class="w-full bg-indigo-100 text-indigo-800 py-2 px-4 rounded-lg hover:bg-indigo-200 flex items-center justify-between">
-                    <span>الفصل الثاني</span><i id="year6semester2Icon" class="fas fa-chevron-down"></i>
-                  </button>
-                  <div id="year6semester2Content" class="hidden space-y-2 pr-2">
-                    <div id="year6semester2Subjects" class="space-y-2"></div>
-                    <button id="addBtn_year6_semester2" onclick="showAddSubjectModal('academic','year6','semester2')" class="hidden w-full bg-indigo-500 text-white py-2 rounded-lg hover:bg-indigo-600"><i class="fas fa-plus ml-1"></i> إضافة مادة</button>
-                  </div>
-
-                  <button onclick="toggleSemester('year6','summer')" class="w-full bg-indigo-100 text-indigo-800 py-2 px-4 rounded-lg hover:bg-indigo-200 flex items-center justify-between">
-                    <span>فصل صيفي</span><i id="year6summerIcon" class="fas fa-chevron-down"></i>
-                  </button>
-                  <div id="year6summerContent" class="hidden space-y-2 pr-2">
-                    <div id="year6summerSubjects" class="space-y-2"></div>
-                    <button id="addBtn_year6_summer" onclick="showAddSubjectModal('academic','year6','summer')" class="hidden w-full bg-indigo-500 text-white py-2 rounded-lg hover:bg-indigo-600"><i class="fas fa-plus ml-1"></i> إضافة مادة</button>
-                  </div>
-                </div>
-              </div>
-
-            </div>
-          </div>
-
-          <!-- University Subjects Content -->
-          <div id="universitySubjectsContent" class="hidden mt-8">
-            <h3 class="text-2xl font-bold text-gray-800 mb-4">مواد الجامعة</h3>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <!-- Required -->
-              <div class="glass-effect rounded-2xl p-6">
-                <div class="text-center mb-4">
-                  <div class="w-12 h-12 bg-red-500 rounded-xl flex items-center justify-center mx-auto mb-3"><i class="fas fa-exclamation-circle text-white"></i></div>
-                  <h4 class="text-xl font-bold text-gray-800">المواد الإجبارية</h4>
-                </div>
-                <button onclick="toggleUniversityCategory('required')" class="w-full bg-red-100 text-red-800 py-2 px-4 rounded-lg hover:bg-red-200 flex items-center justify-between">
-                  <span>عرض المواد الإجبارية</span><i id="requiredIcon" class="fas fa-chevron-down"></i>
-                </button>
-                <div id="requiredContent" class="hidden space-y-2 pr-2 mt-2">
-                  <div id="requiredSubjects" class="space-y-2"></div>
-                  <button id="addBtn_university_required" onclick="showAddSubjectModal('university',null,'required')" class="hidden w-full bg-red-500 text-white py-2 rounded-lg hover:bg-red-600"><i class="fas fa-plus ml-1"></i> إضافة مادة</button>
-                </div>
-              </div>
-              <!-- Elective -->
-              <div class="glass-effect rounded-2xl p-6">
-                <div class="text-center mb-4">
-                  <div class="w-12 h-12 bg-blue-500 rounded-xl flex items-center justify-center mx-auto mb-3"><i class="fas fa-hand-pointer text-white"></i></div>
-                  <h4 class="text-xl font-bold text-gray-800">المواد الحرة</h4>
-                </div>
-                <button onclick="toggleUniversityCategory('elective')" class="w-full bg-blue-100 text-blue-800 py-2 px-4 rounded-lg hover:bg-blue-200 flex items-center justify-between">
-                  <span>عرض المواد الحرة</span><i id="electiveIcon" class="fas fa-chevron-down"></i>
-                </button>
-                <div id="electiveContent" class="hidden space-y-2 pr-2 mt-2">
-                  <div id="electiveSubjects" class="space-y-2"></div>
-                  <button id="addBtn_university_elective" onclick="showAddSubjectModal('university',null,'elective')" class="hidden w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600"><i class="fas fa-plus ml-1"></i> إضافة مادة</button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <!-- Tools (brief) -->
-        <section id="toolsSection" class="section hidden">
-          <div class="mb-8">
-            <h2 class="text-3xl font-bold text-gray-800 mb-2">الأدوات</h2>
-            <p class="text-gray-600">حاسبة GPA، مؤقت، ومهام.</p>
-          </div>
-          <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <!-- GPA -->
-            <div class="glass-effect rounded-2xl p-6 card-hover">
-              <h3 class="text-2xl font-bold text-gray-800 text-center mb-6">حاسبة المعدل (GPA)</h3>
-              <div class="space-y-3">
-                <input type="text" id="gpaSubjectName" placeholder="اسم المادة" class="w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500">
-                <input type="number" id="creditHours" placeholder="عدد الساعات" class="w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500">
-                <select id="grade" class="w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500">
-                  <option value="">اختر الدرجة</option>
-                  <option value="4.2">A+ (4.2)</option><option value="4.0">A (4.0)</option><option value="3.75">A- (3.75)</option>
-                  <option value="3.5">B+ (3.5)</option><option value="3.25">B (3.25)</option><option value="3.0">B- (3.0)</option>
-                  <option value="2.75">C+ (2.75)</option><option value="2.5">C (2.5)</option><option value="2.25">C- (2.25)</option>
-                  <option value="2.0">D+ (2.0)</option><option value="1.75">D (1.75)</option><option value="1.5">D- (1.5)</option>
-                  <option value="0.5">F (0.5)</option>
-                </select>
-                <button onclick="addSubjectToGPA()" class="w-full bg-blue-600 text-white py-3 rounded-xl font-bold hover:bg-blue-700">إضافة</button>
-              </div>
-              <div id="gpaSubjects" class="mt-6 space-y-2"></div>
-              <div class="text-center mt-6 p-4 gradient-card rounded-xl text-white">
-                <div id="gpaResult" class="text-3xl font-bold">0.00</div>
-                <div class="text-sm opacity-90">المعدل التراكمي</div>
-              </div>
-            </div>
-            <!-- Pomodoro -->
-            <div class="glass-effect rounded-2xl p-6 card-hover">
-              <h3 class="text-2xl font-bold text-gray-800 text-center mb-6">مؤقت بومودورو</h3>
+          <!-- أقسام عليا -->
+          <div class="grid md:grid-cols-2 gap-4">
+            <div class="p-4 rounded-xl bg-white border shadow-sm">
               <div class="text-center mb-2">
-                <div id="timerDisplay" class="text-4xl font-bold text-red-600">25:00</div>
-              </div>
-              <div class="flex justify-center gap-2">
-                <button onclick="startTimer()" class="bg-green-600 text-white px-4 py-2 rounded-xl hover:bg-green-700"><i class="fas fa-play"></i></button>
-                <button onclick="pauseTimer()" class="bg-yellow-500 text-white px-4 py-2 rounded-xl hover:bg-yellow-600"><i class="fas fa-pause"></i></button>
-                <button onclick="resetTimer()" class="bg-red-600 text-white px-4 py-2 rounded-xl hover:bg-red-700"><i class="fas fa-stop"></i></button>
-              </div>
-              <div class="mt-4 space-y-2">
-                <input id="customMinutes" type="number" min="1" max="60" placeholder="دقائق مخصصة" class="w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500">
-                <button onclick="setCustomTimer()" class="w-full bg-red-600 text-white py-3 rounded-xl font-bold hover:bg-red-700">تعيين مؤقت</button>
-              </div>
-            </div>
-            <!-- Tasks -->
-            <div class="glass-effect rounded-2xl p-6 card-hover">
-              <h3 class="text-2xl font-bold text-gray-800 text-center mb-6">قائمة المهام</h3>
-              <div class="space-y-3 mb-4">
-                <input id="newTask" placeholder="أضف مهمة جديدة" class="w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500">
-                <div class="flex gap-2">
-                  <button onclick="addTask()" class="flex-1 bg-green-600 text-white py-3 rounded-xl font-bold hover:bg-green-700">إضافة</button>
+                <div class="w-12 h-12 mx-auto rounded-xl bg-gradient-to-br from-blue-500 to-indigo-500 text-white flex items-center justify-center">
+                  <i class="fas fa-graduation-cap"></i>
                 </div>
+                <h3 class="font-bold text-slate-800 mt-2">السنوات الدراسية</h3>
+                <p class="text-slate-600 text-sm">اضغط لفتح السنة والفصل</p>
               </div>
-              <div id="tasksList" class="space-y-3 max-h-64 overflow-y-auto"></div>
+              <div class="grid grid-cols-2 md:grid-cols-3 gap-2">
+                <button class="py-2 px-3 bg-blue-50 rounded-lg hover:bg-blue-100" onclick="openYear('year1')">السنة 1</button>
+                <button class="py-2 px-3 bg-blue-50 rounded-lg hover:bg-blue-100" onclick="openYear('year2')">السنة 2</button>
+                <button class="py-2 px-3 bg-blue-50 rounded-lg hover:bg-blue-100" onclick="openYear('year3')">السنة 3</button>
+                <button class="py-2 px-3 bg-blue-50 rounded-lg hover:bg-blue-100" onclick="openYear('year4')">السنة 4</button>
+                <button class="py-2 px-3 bg-blue-50 rounded-lg hover:bg-blue-100" onclick="openYear('year5')">السنة 5</button>
+                <button class="py-2 px-3 bg-blue-50 rounded-lg hover:bg-blue-100" onclick="openYear('year6')">السنة 6</button>
+              </div>
             </div>
-          </div>
-        </section>
 
-        <!-- Messages (kept minimal) -->
-        <section id="messagesSection" class="section hidden">
-          <div class="mb-8">
-            <h2 class="text-3xl font-bold text-gray-800 mb-2">الرسائل</h2>
-            <p class="text-gray-600">تحديث فوري عند تفعيله.</p>
-          </div>
-          <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <div class="lg:col-span-1">
-              <div class="glass-effect rounded-2xl p-6">
-                <div class="flex items-center justify-between mb-3">
-                  <h3 class="text-xl font-bold text-gray-800">المحادثات</h3>
-                  <button onclick="refreshGroups()" class="px-3 py-2 rounded-lg bg-gray-700 text-white hover:bg-gray-800"><i class="fas fa-rotate"></i></button>
+            <div class="p-4 rounded-xl bg-white border shadow-sm">
+              <div class="text-center mb-2">
+                <div class="w-12 h-12 mx-auto rounded-xl bg-gradient-to-br from-emerald-500 to-teal-500 text-white flex items-center justify-center">
+                  <i class="fas fa-university"></i>
                 </div>
-                <div id="chatsList" class="space-y-3"></div>
+                <h3 class="font-bold text-slate-800 mt-2">مواد الجامعة</h3>
+                <p class="text-slate-600 text-sm">إجباري/حر</p>
               </div>
-            </div>
-            <div class="lg:col-span-2">
-              <div class="glass-effect rounded-2xl p-6 h-96 flex flex-col">
-                <div id="chatHeader" class="flex items-center pb-4 border-b border-gray-200 mb-4">
-                  <div class="w-10 h-10 bg-gray-400 rounded-full flex items-center justify-center"><i class="fas fa-comment text-white"></i></div>
-                  <div class="mr-3">
-                    <div class="font-semibold text-gray-800">اختر محادثة</div>
-                    <div class="text-sm text-gray-600">لبدء المراسلة</div>
-                  </div>
-                </div>
-                <div id="chatMessages" class="flex-1 overflow-y-auto mb-4">
-                  <div class="text-center text-gray-500 mt-16">
-                    <i class="fas fa-comments text-4xl mb-4"></i>
-                    <p>اختر محادثة من القائمة للبدء</p>
-                  </div>
-                </div>
-                <div class="flex items-center gap-2">
-                  <input id="messageInput" type="text" placeholder="اكتب رسالتك..." class="flex-1 px-4 py-2 border rounded-full focus:outline-none focus:ring-2 focus:ring-purple-500" disabled>
-                  <button onclick="sendMessage()" id="sendButton" class="bg-purple-600 text-white p-2 rounded-full hover:bg-purple-700 disabled:opacity-50" disabled><i class="fas fa-paper-plane"></i></button>
-                </div>
+              <div class="grid grid-cols-2 gap-2">
+                <button class="py-2 px-3 bg-emerald-50 rounded-lg hover:bg-emerald-100" onclick="openUniversity('required')">إجباري</button>
+                <button class="py-2 px-3 bg-emerald-50 rounded-lg hover:bg-emerald-100" onclick="openUniversity('elective')">حر</button>
               </div>
             </div>
           </div>
-        </section>
 
-        <!-- Admin (for demo: users/subjects quick forms) -->
-        <section id="adminSection" class="section hidden">
-          <div class="mb-6">
-            <h2 class="text-3xl font-bold text-red-600 mb-1">لوحة الإدارة</h2>
-            <p class="text-gray-600">الإضافة متاحة للمدير فقط من واجهة السنوات/الجامعة.</p>
+          <!-- محتوى السنة/الفصل -->
+          <div id="yearPanel" class="mt-6 hidden">
+            <div class="flex items-center justify-between mb-2">
+              <div class="font-bold text-slate-800" id="yearPanelTitle">السنة</div>
+              <div class="text-xs text-slate-500">اختر الفصل</div>
+            </div>
+            <div class="grid md:grid-cols-3 gap-3">
+              <div class="p-3 rounded-xl bg-blue-50">
+                <div class="flex items-center justify-between">
+                  <div class="font-semibold text-blue-800">الفصل الأول</div>
+                  <button id="btnAdd_y_semester1" class="hidden text-sm bg-blue-600 text-white px-3 py-1 rounded-lg hover:bg-blue-700" onclick="openAddSubject('academic', currentYearKey, 'semester1')">
+                    <i class="fas fa-plus ml-1"></i> إضافة
+                  </button>
+                </div>
+                <div id="list_y_semester1" class="mt-2 space-y-2"></div>
+              </div>
+              <div class="p-3 rounded-xl bg-blue-50">
+                <div class="flex items-center justify-between">
+                  <div class="font-semibold text-blue-800">الفصل الثاني</div>
+                  <button id="btnAdd_y_semester2" class="hidden text-sm bg-blue-600 text-white px-3 py-1 rounded-lg hover:bg-blue-700" onclick="openAddSubject('academic', currentYearKey, 'semester2')">
+                    <i class="fas fa-plus ml-1"></i> إضافة
+                  </button>
+                </div>
+                <div id="list_y_semester2" class="mt-2 space-y-2"></div>
+              </div>
+              <div class="p-3 rounded-xl bg-blue-50">
+                <div class="flex items-center justify-between">
+                  <div class="font-semibold text-blue-800">فصل صيفي</div>
+                  <button id="btnAdd_y_summer" class="hidden text-sm bg-blue-600 text-white px-3 py-1 rounded-lg hover:bg-blue-700" onclick="openAddSubject('academic', currentYearKey, 'summer')">
+                    <i class="fas fa-plus ml-1"></i> إضافة
+                  </button>
+                </div>
+                <div id="list_y_summer" class="mt-2 space-y-2"></div>
+              </div>
+            </div>
           </div>
-          <div class="glass-effect rounded-2xl p-6">
-            <p class="text-gray-700">إن كنت متصلاً بـ Supabase، ستُحفظ المواد والملفات في الجداول السحابية.</p>
+
+          <!-- محتوى الجامعة -->
+          <div id="uniPanel" class="mt-6 hidden">
+            <div class="grid md:grid-cols-2 gap-3">
+              <div class="p-3 rounded-xl bg-emerald-50">
+                <div class="flex items-center justify-between">
+                  <div class="font-semibold text-emerald-800">مواد إجبارية</div>
+                  <button id="btnAdd_u_required" class="hidden text-sm bg-emerald-600 text-white px-3 py-1 rounded-lg hover:bg-emerald-700" onclick="openAddSubject('university', null, 'required')">
+                    <i class="fas fa-plus ml-1"></i> إضافة
+                  </button>
+                </div>
+                <div id="list_u_required" class="mt-2 space-y-2"></div>
+              </div>
+              <div class="p-3 rounded-xl bg-emerald-50">
+                <div class="flex items-center justify-between">
+                  <div class="font-semibold text-emerald-800">مواد حرة</div>
+                  <button id="btnAdd_u_elective" class="hidden text-sm bg-emerald-600 text-white px-3 py-1 rounded-lg hover:bg-emerald-700" onclick="openAddSubject('university', null, 'elective')">
+                    <i class="fas fa-plus ml-1"></i> إضافة
+                  </button>
+                </div>
+                <div id="list_u_elective" class="mt-2 space-y-2"></div>
+              </div>
+            </div>
           </div>
         </section>
       </main>
     </div>
   </div>
 
-  <!-- Add Subject Modal -->
+  <!-- نافذة إضافة مادة -->
   <div id="addSubjectModal" class="fixed inset-0 bg-black/50 z-50 hidden items-center justify-center">
-    <div class="glass-effect rounded-2xl p-6 max-w-lg w-full mx-4 modal">
-      <div class="flex items-center justify-between mb-4">
-        <h3 id="modalTitle" class="text-2xl font-bold text-gray-800">إضافة مادة</h3>
-        <button onclick="closeAddSubjectModal()" class="text-gray-600 hover:text-gray-800"><i class="fas fa-times text-xl"></i></button>
+    <div class="glass rounded-2xl p-6 w-full max-w-xl">
+      <div class="flex items-center justify-between mb-3">
+        <h3 id="addModalTitle" class="text-2xl font-bold text-slate-800">إضافة مادة</h3>
+        <button onclick="closeAddModal()" class="p-2 text-slate-600 hover:bg-slate-100 rounded-lg"><i class="fas fa-times"></i></button>
       </div>
-      <p id="modalSubtitle" class="text-gray-600 mb-4"></p>
-      <form onsubmit="addSubjectToCategory(event)" class="grid gap-3">
-        <input id="modalSubjectName" placeholder="اسم المادة" class="px-4 py-3 border rounded-xl" required>
-        <textarea id="modalSubjectDescription" placeholder="وصف مختصر" class="px-4 py-3 border rounded-xl" rows="3" required></textarea>
-        <div class="grid grid-cols-3 gap-2">
-          <input id="modalSubjectCode" placeholder="رمز المادة (مثل VET101)" class="px-3 py-2 border rounded-xl" required>
-          <input id="modalSubjectHours" type="number" min="1" max="6" placeholder="ساعات" class="px-3 py-2 border rounded-xl" required>
-          <input id="modalSubjectTeacher" placeholder="الأستاذ" class="px-3 py-2 border rounded-xl" required>
+      <p id="addModalSub" class="text-slate-600 mb-4 text-sm"></p>
+      <form onsubmit="handleAddSubject(event)" class="grid gap-3">
+        <input id="subName" class="px-4 py-3 border rounded-xl" placeholder="اسم المادة" required>
+        <textarea id="subDesc" rows="3" class="px-4 py-3 border rounded-xl" placeholder="وصف مختصر" required></textarea>
+        <div class="grid md:grid-cols-3 gap-2">
+          <input id="subCode" class="px-3 py-2 border rounded-xl" placeholder="رمز (VET101)" required>
+          <input id="subHours" type="number" min="1" max="6" class="px-3 py-2 border rounded-xl" placeholder="ساعات" required>
+          <input id="subTeacher" class="px-3 py-2 border rounded-xl" placeholder="الأستاذ" required>
         </div>
-        <div class="flex gap-2 pt-2">
-          <button class="flex-1 bg-purple-600 text-white py-2 rounded-lg hover:bg-purple-700">إضافة</button>
-          <button type="button" onclick="closeAddSubjectModal()" class="flex-1 bg-gray-600 text-white py-2 rounded-lg hover:bg-gray-700">إلغاء</button>
+        <div class="text-xs text-slate-500">مهم: عند الاتصال، سنحفظ المادة أولاً في Supabase ونعتمد المعرّف العائد منه.</div>
+        <div class="flex gap-2 pt-1">
+          <button class="flex-1 bg-purple-600 hover:bg-purple-700 text-white py-2 rounded-lg font-bold">إضافة</button>
+          <button type="button" onclick="closeAddModal()" class="flex-1 bg-slate-600 hover:bg-slate-700 text-white py-2 rounded-lg">إلغاء</button>
         </div>
       </form>
     </div>
   </div>
 
-  <!-- Subject Details Modal -->
-  <div id="subjectDetailsModal" class="fixed inset-0 bg-black/50 z-50 hidden items-center justify-center">
-    <div class="glass-effect rounded-2xl p-6 max-w-2xl w-full mx-4 modal">
-      <div class="flex items-center justify-between mb-4">
-        <h3 id="subjectDetailsTitle" class="text-2xl font-bold text-gray-800">تفاصيل المادة</h3>
-        <button onclick="closeSubjectDetailsModal()" class="text-gray-600 hover:text-gray-800"><i class="fas fa-times text-xl"></i></button>
+  <!-- نافذة تفاصيل المادة -->
+  <div id="subjectModal" class="fixed inset-0 bg-black/50 z-50 hidden items-center justify-center">
+    <div class="glass rounded-2xl p-6 w-full max-w-2xl">
+      <div class="flex items-center justify-between mb-3">
+        <h3 id="subjectTitle" class="text-2xl font-bold text-slate-800">المادة</h3>
+        <button onclick="closeSubjectModal()" class="p-2 text-slate-600 hover:bg-slate-100 rounded-lg"><i class="fas fa-times"></i></button>
       </div>
-      <div id="subjectDetailsContent" class="mb-4"></div>
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-        <button onclick="openSubjectFiles('slides')" class="bg-blue-600 text-white py-3 px-4 rounded-xl font-bold hover:bg-blue-700"><i class="fas fa-presentation ml-1"></i>السلايدات</button>
-        <button onclick="openSubjectFiles('summaries')" class="bg-orange-500 text-white py-3 px-4 rounded-xl font-bold hover:bg-orange-600"><i class="fas fa-file-alt ml-1"></i>التلاخيص</button>
-        <button onclick="openSubjectFiles('recordings')" class="bg-green-600 text-white py-3 px-4 rounded-xl font-bold hover:bg-green-700"><i class="fas fa-microphone ml-1"></i>الريكوردات</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Subject Files Modal -->
-  <div id="subjectFilesModal" class="fixed inset-0 bg-black/50 z-50 hidden items-center justify-center">
-    <div class="glass-effect rounded-2xl p-6 max-w-3xl w-full mx-4 modal">
-      <div class="flex items-center justify-between mb-4">
-        <h3 id="filesModalTitle" class="text-2xl font-bold text-gray-800">ملفات المادة</h3>
-        <button onclick="closeSubjectFilesModal()" class="text-gray-600 hover:text-gray-800"><i class="fas fa-times text-xl"></i></button>
-      </div>
-      <div id="subjectFilesContent" class="space-y-2"></div>
-      <div class="text-center mt-4">
-        <button id="addFileBtn" onclick="addNewFile()" class="hidden bg-purple-600 text-white py-2 px-6 rounded-xl font-bold hover:bg-purple-700"><i class="fas fa-plus ml-1"></i>إضافة ملف</button>
+      <div id="subjectInfo" class="mb-4 text-slate-700"></div>
+      <div class="grid md:grid-cols-3 gap-2">
+        <button onclick="openFiles('slides')" class="bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl font-bold"><i class="fas fa-presentation ml-1"></i> سلايدات</button>
+        <button onclick="openFiles('summaries')" class="bg-orange-500 hover:bg-orange-600 text-white py-3 rounded-xl font-bold"><i class="fas fa-file-alt ml-1"></i> تلخيصات</button>
+        <button onclick="openFiles('recordings')" class="bg-emerald-600 hover:bg-emerald-700 text-white py-3 rounded-xl font-bold"><i class="fas fa-microphone ml-1"></i> ريكوردات</button>
       </div>
     </div>
   </div>
 
-  <!-- Supabase Settings Modal -->
-  <div id="supabaseSettingsModal" class="fixed inset-0 bg-black/50 z-50 hidden items-center justify-center">
-    <div class="glass-effect rounded-2xl p-6 max-w-lg w-full mx-4 modal">
-      <div class="flex items-center justify-between mb-4">
-        <h3 class="text-2xl font-bold text-gray-800">إعدادات Supabase</h3>
-        <button onclick="closeSupabaseSettings()" class="text-gray-600 hover:text-gray-800"><i class="fas fa-times text-xl"></i></button>
+  <!-- نافذة ملفات المادة -->
+  <div id="filesModal" class="fixed inset-0 bg-black/50 z-50 hidden items-center justify-center">
+    <div class="glass rounded-2xl p-6 w-full max-w-3xl">
+      <div class="flex items-center justify-between mb-3">
+        <h3 id="filesTitle" class="text-2xl font-bold text-slate-800">ملفات</h3>
+        <button onclick="closeFilesModal()" class="p-2 text-slate-600 hover:bg-slate-100 rounded-lg"><i class="fas fa-times"></i></button>
       </div>
-      <div class="space-y-3">
+      <div id="filesList" class="space-y-2"></div>
+      <div class="text-center mt-3">
+        <button id="btnAddFile" onclick="addNewFile()" class="hidden bg-purple-600 hover:bg-purple-700 text-white py-2 px-6 rounded-xl font-bold">
+          <i class="fas fa-plus ml-1"></i> إضافة ملف
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- إعدادات Supabase -->
+  <div id="supabaseModal" class="fixed inset-0 bg-black/50 z-50 hidden items-center justify-center">
+    <div class="glass rounded-2xl p-6 w-full max-w-lg">
+      <div class="flex items-center justify-between mb-3">
+        <h3 class="text-2xl font-bold text-slate-800">إعدادات Supabase</h3>
+        <button onclick="closeSupabaseSettings()" class="p-2 text-slate-600 hover:bg-slate-100 rounded-lg"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="grid gap-3">
         <div>
-          <label class="block text-sm text-gray-700 mb-1">Project URL</label>
-          <input id="supabaseUrlInput" class="w-full px-3 py-2 border rounded-lg" placeholder="https://xxxx.supabase.co">
+          <label class="block text-sm text-slate-700 mb-1">Project URL</label>
+          <input id="sbUrl" class="w-full px-3 py-2 border rounded-lg" placeholder="https://xxxx.supabase.co">
         </div>
         <div>
-          <label class="block text-sm text-gray-700 mb-1">Anon Key</label>
+          <label class="block text-sm text-slate-700 mb-1">Anon Key</label>
           <div class="flex">
-            <input id="supabaseAnonInput" type="password" class="w-full px-3 py-2 border rounded-l-lg" placeholder="eyJhbGciOi...">
-            <button onclick="toggleAnonVisibility()" class="px-3 py-2 bg-gray-100 border border-l-0 rounded-r-lg hover:bg-gray-200"><i id="anonEye" class="fas fa-eye"></i></button>
+            <input id="sbAnon" type="password" class="w-full px-3 py-2 border rounded-l-lg" placeholder="eyJhbGciOi...">
+            <button onclick="toggleAnon()" class="px-3 py-2 bg-slate-100 border border-l-0 rounded-r-lg hover:bg-slate-200"><i id="anonEye" class="fas fa-eye"></i></button>
           </div>
         </div>
-        <div class="text-xs text-gray-500">يتم تخزين الإعدادات محلياً فقط على جهازك.</div>
-        <div class="flex gap-2 pt-1">
-          <button onclick="saveSupabaseSettings()" class="flex-1 bg-green-600 text-white py-2 rounded-lg hover:bg-green-700">حفظ والاتصال</button>
-          <button onclick="testSupabaseConnection()" class="flex-1 bg-gray-700 text-white py-2 rounded-lg hover:bg-gray-800">اختبار الاتصال</button>
+        <div class="text-xs text-slate-500">تُحفظ محلياً على جهازك فقط.</div>
+        <div class="grid grid-cols-2 gap-2">
+          <button onclick="saveSupabaseSettings()" class="bg-emerald-600 hover:bg-emerald-700 text-white py-2 rounded-lg font-bold">حفظ والاتصال</button>
+          <button onclick="testSupabaseConnection()" class="bg-slate-800 hover:bg-slate-900 text-white py-2 rounded-lg font-bold">اختبار الاتصال</button>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Toast -->
-  <div id="notification" class="fixed top-4 left-4 px-6 py-4 rounded-xl shadow-lg transform -translate-y-full z-50 bg-blue-600 text-white">
-    <div class="flex items-center">
-      <i id="notificationIcon" class="fas fa-info-circle text-xl ml-3"></i>
-      <span id="notificationText" class="font-semibold">...</span>
+  <!-- تسجيل الدخول -->
+  <div id="loginModal" class="fixed inset-0 bg-black/50 z-50 hidden items-center justify-center">
+    <div class="glass rounded-2xl p-6 w-full max-w-md">
+      <div class="flex items-center justify-between mb-3">
+        <h3 class="text-2xl font-bold text-slate-800">تسجيل الدخول</h3>
+        <button onclick="closeLogin()" class="p-2 text-slate-600 hover:bg-slate-100 rounded-lg"><i class="fas fa-times"></i></button>
+      </div>
+      <form onsubmit="handleLogin(event)" class="grid gap-3">
+        <input id="loginEmail" type="email" class="px-4 py-3 border rounded-xl" placeholder="example@vet.edu" required>
+        <input id="loginPass" type="password" class="px-4 py-3 border rounded-xl" placeholder="••••••••" required>
+        <button class="bg-purple-600 hover:bg-purple-700 text-white py-2 rounded-lg font-bold">دخول</button>
+        <div class="text-xs text-slate-500">لصلاحيات المدير جرّب البريد: admin@vet.edu مع أي كلمة مرور.</div>
+      </form>
+    </div>
+  </div>
+
+  <!-- تنبيهات -->
+  <div id="toast" class="fixed top-4 left-4 z-50 hidden">
+    <div id="toastBox" class="px-5 py-3 rounded-xl shadow text-white bg-blue-600">
+      <i id="toastIcon" class="fas fa-info-circle ml-2"></i>
+      <span id="toastText">...</span>
     </div>
   </div>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/js/all.min.js"></script>
   <script>
-    // State
-    let currentUser=null, isAdmin=false;
-    let supabaseClient=null, realtimeEnabled=true, activeRealtimeChannel=null;
-    let tasks = JSON.parse(localStorage.getItem('tasks')||'[]');
-    let gpaEntries = JSON.parse(localStorage.getItem('gpaEntries')||'[]');
+    // حالة عامة
+    let supabaseClient = null;
+    let currentUser = null;
+    let isAdmin = false;
 
-    // Subjects organized structure
-    let organizedSubjects = JSON.parse(localStorage.getItem('organizedSubjects')) || {
+    // تنظيم المواد محلياً
+    let organized = JSON.parse(localStorage.getItem('organizedSubjects') || 'null') || {
       academic: {
         year1:{semester1:[], semester2:[], summer:[]},
         year2:{semester1:[], semester2:[], summer:[]},
         year3:{semester1:[], semester2:[], summer:[]},
-        year4:{semester1:[], semester2:[], summer:[]},
-        year5:{semester1:[], semester2:[], summer:[]},
-        year6:{semester1:[], semester2:[], summer:[]}
-      },
-      university: { required:[], elective:[] }
+        year4:{semester1:{}, semester2:{}, summer:{}}
+      }
     };
+    // تأكد من السنوات الناقصة (حماية ضد تخزين قديم)
+    ['year1','year2','year3','year4','year5','year6'].forEach(y=>{
+      if(!organized.academic[y]) organized.academic[y] = {semester1:[], semester2:[], summer:[]};
+    });
+    if(!organized.university) organized.university = { required:[], elective:[] };
 
-    // Currently selected for modals
-    let currentModalContext = {category:null, yearKey:null, termOrType:null};
-    let currentSubjectForFiles = null;
-    let currentFileType = null;
+    // سياق إضافة مادة
+    let addCtx = { category:null, yearKey:null, termOrType:null };
+    // سياق عرض مادة وملفات
+    let currentSubject = null;
+    let currentFilesType = null;
+    let currentYearKey = null;
 
-    // Loading
-    window.addEventListener('DOMContentLoaded', ()=>{
-      let p=0, t=setInterval(()=>{
-        p+=25; document.getElementById('loadingProgress').style.width=p+'%';
-        if(p>=100){ clearInterval(t); document.getElementById('loadingScreen').classList.add('hidden'); document.getElementById('landingPage').classList.remove('hidden'); }
-      },150);
-
-      // Restore theme and realtime
-      const savedTheme = localStorage.getItem('theme');
-      if (savedTheme==='dark'){ document.body.classList.add('dark'); document.getElementById('themeIcon').className='fas fa-sun text-xl'; }
-      const savedRT = localStorage.getItem('realtimeEnabled'); if (savedRT!==null) realtimeEnabled = savedRT==='true';
-      const rtToggle = document.getElementById('realtimeToggle'); if (rtToggle) rtToggle.checked = realtimeEnabled;
-
+    // بدء
+    document.addEventListener('DOMContentLoaded', ()=>{
+      // شريط التحميل
+      let p=0; const int=setInterval(()=>{ p+=20; document.getElementById('loadingBar').style.width=p+'%'; if(p>=100){ clearInterval(int); document.getElementById('loadingScreen').style.display='none'; document.getElementById('landing').classList.remove('hidden'); }},120);
+      // تحميل اتصال Supabase إن وجد
       initSupabaseFromStorage();
+      // مظهر صلاحيات الإضافة
+      updateAddModeState();
+      // عدادات
       updateCounters();
-      loadTasks();
-      updateGPA();
     });
 
-    // UI helpers
-    function toggleSidebar(){ document.getElementById('sidebar').classList.toggle('translate-x-full'); }
-    function toggleUserMenu(){ document.getElementById('userMenu').classList.toggle('hidden'); }
-    function toggleTheme(){
-      document.body.classList.toggle('dark');
-      const isDark=document.body.classList.contains('dark');
-      localStorage.setItem('theme', isDark?'dark':'light');
-      document.getElementById('themeIcon').className = isDark?'fas fa-sun text-xl':'fas fa-moon text-xl';
+    // واجهة عامة
+    function showToast(msg, type='info', detail=null){
+      const t=document.getElementById('toast'), b=document.getElementById('toastBox'), i=document.getElementById('toastIcon'), s=document.getElementById('toastText');
+      const map={success:['bg-emerald-600','fas fa-check-circle'], error:['bg-rose-600','fas fa-exclamation-circle'], info:['bg-blue-600','fas fa-info-circle']};
+      b.className='px-5 py-3 rounded-xl shadow text-white '+map[type][0]; i.className=map[type][1]+' ml-2'; s.textContent=msg+(detail?(' — '+detail):'');
+      t.classList.remove('hidden'); setTimeout(()=> t.classList.add('hidden'), 3200);
     }
-    function showNotification(msg,type='info'){
-      const n=document.getElementById('notification'), icon=document.getElementById('notificationIcon'), text=document.getElementById('notificationText');
-      const types={success:{icon:'fas fa-check-circle',bg:'bg-green-600'},error:{icon:'fas fa-exclamation-circle',bg:'bg-red-600'},info:{icon:'fas fa-info-circle',bg:'bg-blue-600'}};
-      n.className = `fixed top-4 left-4 px-6 py-4 rounded-xl shadow-lg transform z-50 ${types[type].bg} text-white`;
-      n.style.transform='translateY(0)'; icon.className=types[type].icon+' text-xl ml-3'; text.textContent=msg;
-      setTimeout(()=>{ n.style.transform='translateY(-150%)'; }, 2800);
-    }
-    function showLoginForm(){ const m=document.getElementById('loginForm'); m.classList.remove('hidden'); m.classList.add('flex'); }
-    function showSignupForm(){ const m=document.getElementById('signupForm'); m.classList.remove('hidden'); m.classList.add('flex'); }
-    function hideAuthForms(){ ['loginForm','signupForm'].forEach(id=>{const m=document.getElementById(id); m.classList.add('hidden'); m.classList.remove('flex');}) }
-    function showSection(name){
-      document.querySelectorAll('.section').forEach(s=>s.classList.add('hidden'));
-      document.getElementById(name+'Section').classList.remove('hidden');
-      document.querySelectorAll('.nav-item').forEach(i=>i.classList.remove('active'));
-      const btn = document.querySelector(`[onclick="showSection('${name}')"]`); if (btn) btn.classList.add('active');
-      if (name==='subjects'){ refreshSubjectsUI(); }
-      if (name==='messages'){ loadChatGroups(); }
-    }
-
-    // Auth (demo)
+    function openLogin(){ const m=document.getElementById('loginModal'); m.classList.remove('hidden'); m.classList.add('flex'); }
+    function closeLogin(){ const m=document.getElementById('loginModal'); m.classList.add('hidden'); m.classList.remove('flex'); }
     function handleLogin(e){
       e.preventDefault();
-      const email=document.getElementById('loginEmail').value;
-      const password=document.getElementById('loginPassword').value;
-      if (!email || !password) return;
-      if (email==='admin@vet.edu'){ currentUser={email,name:'المدير العام',role:'admin'}; isAdmin=true; }
-      else { currentUser={email,name:email.split('@')[0],role:'student', year:'3'}; isAdmin=false; }
-      document.getElementById('landingPage').classList.add('hidden');
-      document.getElementById('dashboard').classList.remove('hidden');
-      document.getElementById('userName').textContent=currentUser.name;
-      document.getElementById('sidebarUserName').textContent=currentUser.name;
-      document.getElementById('userRole').textContent=isAdmin?'مدير النظام':'طالب';
-      document.getElementById('adminNav').classList.toggle('hidden',!isAdmin);
+      const email=document.getElementById('loginEmail').value.trim();
+      const pass=document.getElementById('loginPass').value.trim();
+      if(!email||!pass) return;
+      isAdmin = (email==='admin@vet.edu');
+      currentUser = { email, name: email.split('@')[0] };
+      document.getElementById('landing').classList.add('hidden');
+      document.getElementById('app').classList.remove('hidden');
+      document.getElementById('sidebar').classList.remove('hidden');
+      document.getElementById('userName').textContent = currentUser.name;
+      document.getElementById('userRole').textContent = isAdmin ? 'مدير' : 'طالب';
+      updateAddModeState();
+      closeLogin();
       showSection('subjects');
-      showNotification('تم تسجيل الدخول','success');
-    }
-    function handleSignup(e){
-      e.preventDefault();
-      const name=document.getElementById('signupName').value;
-      const email=document.getElementById('signupEmail').value;
-      const year=document.getElementById('signupYear').value;
-      currentUser={name,email,role:'student',year}; isAdmin=false;
-      document.getElementById('landingPage').classList.add('hidden');
-      document.getElementById('dashboard').classList.remove('hidden');
-      document.getElementById('userName').textContent=currentUser.name;
-      document.getElementById('sidebarUserName').textContent=currentUser.name;
-      document.getElementById('userRole').textContent='طالب';
-      showSection('subjects');
-      showNotification('تم إنشاء الحساب','success');
+      showToast('تم تسجيل الدخول','success');
     }
     function logout(){
       currentUser=null; isAdmin=false;
-      document.getElementById('dashboard').classList.add('hidden');
-      document.getElementById('landingPage').classList.remove('hidden');
-      showNotification('تم تسجيل الخروج','info');
+      document.getElementById('app').classList.add('hidden');
+      document.getElementById('landing').classList.remove('hidden');
+      updateAddModeState();
+      showToast('تم تسجيل الخروج','info');
     }
+    function toggleSidebar(){ document.getElementById('sidebar').classList.toggle('hidden'); }
+    function showSection(name){ if(name==='subjects'){ /* already on */ } }
 
-    // Supabase settings
-    function openSupabaseSettings(){
-      const m=document.getElementById('supabaseSettingsModal'); m.classList.remove('hidden'); m.classList.add('flex');
-      document.getElementById('supabaseUrlInput').value=localStorage.getItem('supabase_url')||'';
-      document.getElementById('supabaseAnonInput').value=localStorage.getItem('supabase_anon')||'';
-    }
-    function closeSupabaseSettings(){ const m=document.getElementById('supabaseSettingsModal'); m.classList.add('hidden'); m.classList.remove('flex'); }
-    function toggleAnonVisibility(){ const i=document.getElementById('supabaseAnonInput'), e=document.getElementById('anonEye'); if(i.type==='password'){i.type='text';e.className='fas fa-eye-slash'}else{i.type='password';e.className='fas fa-eye'} }
+    // إعدادات Supabase
+    function openSupabaseSettings(){ const m=document.getElementById('supabaseModal'); m.classList.remove('hidden'); m.classList.add('flex'); document.getElementById('sbUrl').value=localStorage.getItem('supabase_url')||''; document.getElementById('sbAnon').value=localStorage.getItem('supabase_anon')||''; }
+    function closeSupabaseSettings(){ const m=document.getElementById('supabaseModal'); m.classList.add('hidden'); m.classList.remove('flex'); }
+    function toggleAnon(){ const i=document.getElementById('sbAnon'), e=document.getElementById('anonEye'); if(i.type==='password'){ i.type='text'; e.className='fas fa-eye-slash'; } else { i.type='password'; e.className='fas fa-eye'; } }
     function saveSupabaseSettings(){
-      const url=document.getElementById('supabaseUrlInput').value.trim();
-      const anon=document.getElementById('supabaseAnonInput').value.trim();
-      if(!url||!anon){ showNotification('أدخل Project URL و Anon Key','error'); return; }
-      localStorage.setItem('supabase_url',url); localStorage.setItem('supabase_anon',anon);
+      const url=document.getElementById('sbUrl').value.trim(), anon=document.getElementById('sbAnon').value.trim();
+      if(!url||!anon){ showToast('أدخل Project URL و Anon Key','error'); return; }
+      localStorage.setItem('supabase_url', url); localStorage.setItem('supabase_anon', anon);
       initSupabaseFromStorage(true);
     }
-    function initSupabaseFromStorage(showToast=false){
+    function initSupabaseFromStorage(showToastMsg=false){
       const url=localStorage.getItem('supabase_url'), anon=localStorage.getItem('supabase_anon');
-      if (url && anon){ supabaseClient = window.supabase.createClient(url, anon); setConnectedState(true); if(showToast)showNotification('تم الاتصال','success'); }
-      else { supabaseClient=null; setConnectedState(false); }
+      if(url && anon){ supabaseClient = window.supabase.createClient(url, anon); setConnBadge(true); if(showToastMsg) showToast('تم الاتصال','success'); }
+      else { supabaseClient=null; setConnBadge(false); }
     }
     async function testSupabaseConnection(){
+      if(!supabaseClient){ initSupabaseFromStorage(); if(!supabaseClient) return showToast('أدخل الإعدادات أولاً','error'); }
       try{
-        if (!supabaseClient){ initSupabaseFromStorage(); if(!supabaseClient){ showNotification('أدخل الإعدادات أولاً','error'); return; } }
         const { error } = await supabaseClient.from('subjects').select('id').limit(1);
         if (error) throw error;
-        showNotification('الاتصال ناجح','success'); setConnectedState(true);
-      }catch(e){ console.warn(e); showNotification('فشل الاتصال. تحقق من الجداول والصلاحيات','error'); setConnectedState(false); }
+        setConnBadge(true); showToast('الاتصال ناجح','success');
+      }catch(err){ setConnBadge(false); showErrorDetail('فشل الاتصال', err); }
     }
-    function setConnectedState(connected){
-      const badge=document.getElementById('supabaseStatusBadge'), text=document.getElementById('syncStatusText');
-      if (connected){ badge.textContent='متصل'; badge.className='px-3 py-1 text-xs rounded-full bg-green-100 text-green-700'; text.textContent='Online'; }
-      else { badge.textContent='غير متصل'; badge.className='px-3 py-1 text-xs rounded-full bg-gray-200 text-gray-700'; text.textContent='Offline'; teardownRealtime(); }
+    function setConnBadge(connected){
+      const b=document.getElementById('connBadge');
+      if(connected){ b.textContent='متصل'; b.className='px-3 py-1 rounded-full text-xs bg-emerald-100 text-emerald-700'; }
+      else { b.textContent='غير متصل'; b.className='px-3 py-1 rounded-full text-xs bg-slate-200 text-slate-700'; }
     }
-    function toggleRealtime(on){ realtimeEnabled=on; localStorage.setItem('realtimeEnabled',String(on)); if(on) setupRealtime(); else teardownRealtime(); }
+    function showErrorDetail(message, err){
+      // عرض رسالة مفصلة من Supabase إن وُجدت
+      let detail='';
+      if(err){
+        if(err.message) detail += err.message;
+        if(err.code) detail += ` [${err.code}]`;
+      }
+      showToast(message, 'error', detail||null);
+      console.warn(message, err);
+    }
 
-    // Messages (minimal)
-    let chatGroups = JSON.parse(localStorage.getItem('chatGroups')||'[]');
-    let chatMessages = { admin:[{sender:'admin',message:'مرحباً!',time:'الآن'}] };
-    function loadChatGroups(){
-      const list=document.getElementById('chatsList'); if(!list) return; list.innerHTML='';
-      const adminItem=document.createElement('div');
-      adminItem.className='flex items-center p-3 hover:bg-gray-50 rounded-xl cursor-pointer';
-      adminItem.onclick=()=>openChat('admin');
-      adminItem.innerHTML=`<div class="w-12 h-12 bg-red-500 rounded-full flex items-center justify-center"><i class="fas fa-shield-alt text-white"></i></div>
-        <div class="mr-3 flex-1"><div class="font-semibold text-gray-800">الإدارة</div><div class="text-sm text-gray-600">مرحباً كيف نساعدك؟</div></div>
-        <div class="text-xs text-gray-500">الآن</div>`;
-      list.appendChild(adminItem);
-      chatGroups.forEach(g=>{
-        const item=document.createElement('div');
-        item.className='flex items-center p-3 hover:bg-gray-50 rounded-xl cursor-pointer';
-        item.onclick=()=>openChat(g.id);
-        item.innerHTML=`<div class="w-12 h-12 bg-purple-500 rounded-full flex items-center justify-center"><i class="fas fa-users text-white"></i></div>
-          <div class="mr-3 flex-1"><div class="font-semibold text-gray-800">${g.name}</div><div class="text-sm text-gray-600">${g.lastMessage||''}</div></div>
-          <div class="text-xs text-gray-500">${g.lastMessageTime||''}</div>`;
-        list.appendChild(item);
+    // تحديث صلاحيات الإضافة
+    function updateAddModeState(){
+      const el=document.getElementById('addModeState');
+      el.textContent = isAdmin ? 'المدير: إضافة/حذف مسموحة' : 'المستخدمون: عرض فقط';
+      // إظهار أزرار إضافة للمشرف
+      ['btnAdd_y_semester1','btnAdd_y_semester2','btnAdd_y_summer','btnAdd_u_required','btnAdd_u_elective'].forEach(id=>{
+        const b=document.getElementById(id); if(b) b.classList.toggle('hidden', !isAdmin);
       });
     }
-    function timeFromISO(iso){ try{const d=new Date(iso); return d.toLocaleTimeString('ar-SA',{hour:'2-digit',minute:'2-digit'});}catch{return 'الآن'} }
-    async function openChat(chatId){
-      const header=document.getElementById('chatHeader'); const input=document.getElementById('messageInput'); const send=document.getElementById('sendButton');
-      if (chatId==='admin'){
-        header.innerHTML=`<div class="w-10 h-10 bg-red-500 rounded-full flex items-center justify-center"><i class="fas fa-shield-alt text-white"></i></div>
-          <div class="mr-3"><div class="font-semibold text-gray-800">الإدارة</div><div class="text-sm text-gray-600">متاح الآن</div></div>`;
-        loadChatMessages('admin');
-      } else {
-        const g = chatGroups.find(x=>x.id===chatId);
-        header.innerHTML=`<div class="w-10 h-10 bg-purple-500 rounded-full flex items-center justify-center"><i class="fas fa-users text-white"></i></div>
-          <div class="mr-3"><div class="font-semibold text-gray-800">${g?.name||'مجموعة'}</div><div class="text-sm text-gray-600">${g?.members?.length||0} عضو</div></div>`;
-        if (supabaseClient){
-          try{
-            const { data } = await supabaseClient.from('messages').select('*').eq('group_id', g.id).order('created_at', {ascending:true}).limit(100);
-            chatMessages[g.id] = (data||[]).map(m=>({sender:m.sender||'عضو', message:m.content, time: timeFromISO(m.created_at)}));
-          }catch(e){/* ignore */}
-        }
-        loadChatMessages(g.id);
-      }
-      input.disabled=false; send.disabled=false; input.focus();
-      if (realtimeEnabled) setupRealtime();
-    }
-    function loadChatMessages(chatId){
-      const c=document.getElementById('chatMessages'); const msgs=chatMessages[chatId]||[];
-      c.innerHTML=''; msgs.forEach(m=>appendMessage(m,false)); c.scrollTop=c.scrollHeight;
-    }
-    function appendMessage(m,scroll=true){
-      const c=document.getElementById('chatMessages'); const isUser=m.sender==='user'||m.isUser;
-      const wrap=document.createElement('div'); wrap.className=`mb-3 ${isUser?'text-left':'text-right'}`;
-      wrap.innerHTML=`<div class="inline-block max-w-xs lg:max-w-md px-4 py-2 rounded-2xl ${isUser?'bg-purple-600 text-white':'bg-gray-200 text-gray-800'}">
-        ${!isUser && m.sender && m.sender!=='admin'?`<div class="text-xs font-semibold mb-1">${m.sender}</div>`:''}
-        <div>${m.message}</div><div class="text-xs opacity-75 mt-1">${m.time||timeFromISO(new Date().toISOString())}</div></div>`;
-      c.appendChild(wrap); if (scroll) c.scrollTop=c.scrollHeight;
-    }
-    async function sendMessage(){
-      const input=document.getElementById('messageInput'); const text=input.value.trim(); if(!text) return;
-      const headerName=document.getElementById('chatHeader').innerText;
-      let currentId=null; if (headerName.includes('الإدارة')) currentId='admin';
-      else { // find any opened group by last open; not tracked here for brevity
-        // not critical for this demo
-      }
-      currentId = currentId || (chatGroups[0]?.id);
-      if (!currentId){ showNotification('اختر محادثة أولاً','error'); return; }
-      if (!chatMessages[currentId]) chatMessages[currentId]=[];
-      const mine={sender:'user', message:text, time: timeFromISO(new Date().toISOString()), isUser:true};
-      chatMessages[currentId].push(mine); appendMessage(mine); input.value='';
-      const g = chatGroups.find(x=>x.id===currentId);
-      if (supabaseClient && g){
-        try{ await supabaseClient.from('messages').insert([{group_id:g.id, content:text, sender: currentUser?.name||'مستخدم'}]); }catch(e){/* ignore */}
-      }
-    }
-    function setupRealtime(){
-      if (!supabaseClient) return;
-      teardownRealtime();
-      activeRealtimeChannel = supabaseClient.channel('public:messages')
-        .on('postgres_changes',{event:'INSERT',schema:'public',table:'messages'}, payload=>{
-          const msg=payload.new; const groupId=msg.group_id; if (!chatMessages[groupId]) chatMessages[groupId]=[];
-          chatMessages[groupId].push({sender:msg.sender||'عضو', message:msg.content, time: timeFromISO(msg.created_at)});
-          const header=document.getElementById('chatHeader').innerText; if (header.includes('الإدارة') && groupId!=='admin') return;
-          loadChatMessages(groupId);
-        }).subscribe();
-    }
-    function teardownRealtime(){ if (activeRealtimeChannel){ activeRealtimeChannel.unsubscribe(); activeRealtimeChannel=null; } }
 
-    // Subjects UI interactions
-    function toggleCategory(cat){
-      const content=document.getElementById(cat+'Content'); const icon=document.getElementById(cat+'Icon');
-      if (content.classList.contains('hidden')){ content.classList.remove('hidden'); icon?.classList.add('rotate-180'); }
-      else { content.classList.add('hidden'); icon?.classList.remove('rotate-180'); }
-    }
-    function toggleSemester(yearKey, term){
-      const content=document.getElementById(yearKey+term+'Content'); const icon=document.getElementById(yearKey+term+'Icon');
-      if (content.classList.contains('hidden')){ content.classList.remove('hidden'); icon?.classList.add('rotate-180'); loadSemesterSubjects(yearKey, term); }
-      else { content.classList.add('hidden'); icon?.classList.remove('rotate-180'); }
-    }
-    function toggleUniversityCategory(type){
-      const content=document.getElementById(type+'Content'); const icon=document.getElementById(type+'Icon');
-      if (content.classList.contains('hidden')){ content.classList.remove('hidden'); icon?.classList.add('rotate-180'); loadUniversityCategorySubjects(type); }
-      else { content.classList.add('hidden'); icon?.classList.remove('rotate-180'); }
+    // فتح سنة
+    function openYear(yearKey){
+      currentYearKey = yearKey;
+      const map={year1:'الأولى',year2:'الثانية',year3:'الثالثة',year4:'الرابعة',year5:'الخامسة',year6:'السادسة'};
+      document.getElementById('yearPanelTitle').textContent = 'السنة '+(map[yearKey]||'');
+      document.getElementById('yearPanel').classList.remove('hidden');
+      document.getElementById('uniPanel').classList.add('hidden');
+      // تحميل المواد للفصول
+      renderSubjectsList('list_y_semester1', organized.academic[yearKey].semester1);
+      renderSubjectsList('list_y_semester2', organized.academic[yearKey].semester2);
+      renderSubjectsList('list_y_summer', organized.academic[yearKey].summer);
+      updateAddModeState();
     }
 
-    function refreshSubjectsUI(){
-      // show/hide admin add buttons
-      const adminBtns = [
-        'addBtn_year1_semester1','addBtn_year1_semester2','addBtn_year1_summer',
-        'addBtn_year2_semester1','addBtn_year2_semester2','addBtn_year2_summer',
-        'addBtn_year3_semester1','addBtn_year3_semester2','addBtn_year3_summer',
-        'addBtn_year4_semester1','addBtn_year4_semester2','addBtn_year4_summer',
-        'addBtn_year5_semester1','addBtn_year5_semester2','addBtn_year5_summer',
-        'addBtn_year6_semester1','addBtn_year6_semester2','addBtn_year6_summer',
-        'addBtn_university_required','addBtn_university_elective'
-      ];
-      adminBtns.forEach(id=>{ const b=document.getElementById(id); if (b) b.classList.toggle('hidden', !isAdmin); });
-      updateCounters();
+    // فتح قسم الجامعة
+    function openUniversity(type){
+      document.getElementById('uniPanel').classList.remove('hidden');
+      document.getElementById('yearPanel').classList.add('hidden');
+      renderSubjectsList('list_u_required', organized.university.required);
+      renderSubjectsList('list_u_elective', organized.university.elective);
+      updateAddModeState();
     }
 
-    function subjectCardHTML(sub){
+    // بطاقة مادة
+    function subjectCard(sub){
       return `
-        <div class="bg-white border border-gray-200 rounded-lg p-3 hover:shadow transition">
-          <div class="flex items-start justify-between">
-            <div class="flex-1 cursor-pointer" onclick="viewSubjectDetails('${sub.id}')">
-              <h5 class="font-bold text-gray-800">${sub.name}</h5>
-              <p class="text-sm text-gray-600">${sub.code||'-'} • ${sub.hours} ساعات</p>
-              <p class="text-xs text-gray-500">${sub.teacher||''}</p>
-            </div>
-            <div class="flex gap-1">
-              <button onclick="quickOpenFiles(event,'${sub.id}','slides')" class="text-blue-600 hover:text-blue-800 p-1" title="السلايدات"><i class="fas fa-presentation"></i></button>
-              <button onclick="quickOpenFiles(event,'${sub.id}','summaries')" class="text-orange-600 hover:text-orange-800 p-1" title="التلاخيص"><i class="fas fa-file-alt"></i></button>
-              <button onclick="quickOpenFiles(event,'${sub.id}','recordings')" class="text-green-600 hover:text-green-800 p-1" title="الريكوردات"><i class="fas fa-microphone"></i></button>
-            </div>
+        <div class="bg-white border rounded-xl p-3 hover:shadow flex items-start justify-between">
+          <div class="flex-1 cursor-pointer" onclick="openSubject('${sub.id}')">
+            <div class="font-bold text-slate-800">${sub.name}</div>
+            <div class="text-sm text-slate-600">${sub.code||'-'} • ${sub.hours} ساعات</div>
+            <div class="text-xs text-slate-500">${sub.teacher||''}${sub.id.startsWith('temp_')?' • غير متزامنة':''}</div>
           </div>
-        </div>`;
+          <div class="flex gap-1">
+            <button class="text-blue-600 hover:text-blue-800 p-1" title="السلايدات" onclick="event.stopPropagation(); quickFiles('${sub.id}','slides')"><i class="fas fa-presentation"></i></button>
+            <button class="text-orange-600 hover:text-orange-800 p-1" title="التلخيصات" onclick="event.stopPropagation(); quickFiles('${sub.id}','summaries')"><i class="fas fa-file-alt"></i></button>
+            <button class="text-emerald-600 hover:text-emerald-800 p-1" title="الريكوردات" onclick="event.stopPropagation(); quickFiles('${sub.id}','recordings')"><i class="fas fa-microphone"></i></button>
+          </div>
+        </div>
+      `;
     }
-
-    function loadSemesterSubjects(yearKey, term){
-      const container=document.getElementById(yearKey+term+'Subjects');
-      const list = organizedSubjects.academic[yearKey][term] || [];
-      container.innerHTML = list.map(subjectCardHTML).join('');
-      updateCounters();
-    }
-    function loadUniversityCategorySubjects(type){
-      const container=document.getElementById(type+'Subjects');
-      const list = organizedSubjects.university[type] || [];
-      container.innerHTML = list.map(subjectCardHTML).join('');
+    function renderSubjectsList(containerId, list){
+      const c=document.getElementById(containerId); if(!c) return; c.innerHTML = (list||[]).map(subjectCard).join('') || `<div class="text-center text-slate-500 py-4 text-sm">لا توجد مواد</div>`;
       updateCounters();
     }
 
-    function showAddSubjectModal(category, yearKey, termOrType){
-      if (!isAdmin){ showNotification('الإضافة للمدير فقط','error'); return; }
-      currentModalContext = {category, yearKey, termOrType};
+    // فتح نموذج إضافة مادة
+    function openAddSubject(category, yearKey, termOrType){
+      if(!isAdmin) return showToast('الإضافة للمدير فقط','error');
+      addCtx = { category, yearKey, termOrType };
+      const t=document.getElementById('addModalTitle'), s=document.getElementById('addModalSub');
+      if(category==='academic'){
+        const map={year1:'الأولى',year2:'الثانية',year3:'الثالثة',year4:'الرابعة',year5:'الخامسة',year6:'السادسة'};
+        const tmap={semester1:'الأول',semester2:'الثاني',summer:'الصيفي'};
+        t.textContent='إضافة مادة';
+        s.textContent=`السنة ${map[yearKey]} • الفصل ${tmap[termOrType]}`;
+      } else {
+        s.textContent = (termOrType==='required' ? 'مواد إجبارية' : 'مواد حرة');
+      }
       const m=document.getElementById('addSubjectModal'); m.classList.remove('hidden'); m.classList.add('flex');
-      const title=document.getElementById('modalTitle'), subtitle=document.getElementById('modalSubtitle');
-      if (category==='academic'){
-        const yearNames={year1:'الأولى',year2:'الثانية',year3:'الثالثة',year4:'الرابعة',year5:'الخامسة',year6:'السادسة'};
-        const termNames={semester1:'الأول',semester2:'الثاني',summer:'الصيفي'};
-        title.textContent='إضافة مادة جديدة';
-        subtitle.textContent=`السنة ${yearNames[yearKey]} • الفصل ${termNames[termOrType]}`;
-      } else {
-        const t = termOrType==='required'?'إجبارية':'حرة';
-        title.textContent='إضافة مادة جامعة';
-        subtitle.textContent=`${t}`;
-      }
     }
-    function closeAddSubjectModal(){
+    function closeAddModal(){
+      ['subName','subDesc','subCode','subHours','subTeacher'].forEach(id=>document.getElementById(id).value='');
       const m=document.getElementById('addSubjectModal'); m.classList.add('hidden'); m.classList.remove('flex');
-      ['modalSubjectName','modalSubjectDescription','modalSubjectCode','modalSubjectHours','modalSubjectTeacher'].forEach(id=>document.getElementById(id).value='');
     }
-
-    async function addSubjectToCategory(e){
+    // إضافة مادة: الأفضل — نحفظ أولاً في Supabase ونستخدم المعرف العائد
+    async function handleAddSubject(e){
       e.preventDefault();
-      const name=document.getElementById('modalSubjectName').value.trim();
-      const description=document.getElementById('modalSubjectDescription').value.trim();
-      const code=document.getElementById('modalSubjectCode').value.trim();
-      const hours=parseInt(document.getElementById('modalSubjectHours').value);
-      const teacher=document.getElementById('modalSubjectTeacher').value.trim();
-      if (!name || !description || !hours || !code || !teacher) return;
+      const name=document.getElementById('subName').value.trim();
+      const description=document.getElementById('subDesc').value.trim();
+      const code=document.getElementById('subCode').value.trim();
+      const hours=parseInt(document.getElementById('subHours').value);
+      const teacher=document.getElementById('subTeacher').value.trim();
+      if(!name||!description||!code||!hours||!teacher) return;
 
-      const id = 'sub_'+Date.now();
-      const newSub = { id, name, description, code, hours, teacher };
+      let newSub = null;
 
-      if (currentModalContext.category==='academic'){
-        organizedSubjects.academic[currentModalContext.yearKey][currentModalContext.termOrType].push(newSub);
-        localStorage.setItem('organizedSubjects', JSON.stringify(organizedSubjects));
-        loadSemesterSubjects(currentModalContext.yearKey, currentModalContext.termOrType);
-      } else {
-        organizedSubjects.university[currentModalContext.termOrType].push(newSub);
-        localStorage.setItem('organizedSubjects', JSON.stringify(organizedSubjects));
-        loadUniversityCategorySubjects(currentModalContext.termOrType);
-      }
-
-      // Push to Supabase if connected
-      if (supabaseClient){
+      if(supabaseClient){
         try{
           const payload = {
-            id,
             name, description, hours, code, teacher,
-            category: currentModalContext.category,
-            year: currentModalContext.category==='academic' ? parseInt(currentModalContext.yearKey.replace('year','')) : null,
-            term: currentModalContext.category==='academic' ? currentModalContext.termOrType : null,
-            uni_type: currentModalContext.category==='university' ? currentModalContext.termOrType : null,
+            category: addCtx.category,
+            year: addCtx.category==='academic' ? parseInt(addCtx.yearKey.replace('year','')) : null,
+            term: addCtx.category==='academic' ? addCtx.termOrType : null,
+            uni_type: addCtx.category==='university' ? addCtx.termOrType : null,
             updated_at: new Date().toISOString()
           };
-          await supabaseClient.from('subjects').upsert([payload], { onConflict:'id' });
-        }catch(err){ console.warn(err); }
-      }
-
-      closeAddSubjectModal();
-      showNotification('تمت إضافة المادة','success');
-      updateCounters();
-    }
-
-    // View subject details
-    function findSubjectById(subId){
-      // search academic
-      for (const y in organizedSubjects.academic){
-        for (const t in organizedSubjects.academic[y]){
-          const f = organizedSubjects.academic[y][t].find(s=>s.id===subId);
-          if (f) return f;
+          const { data, error } = await supabaseClient.from('subjects').insert([payload]).select().limit(1);
+          if (error) throw error;
+          const row = (data && data[0]) ? data[0] : null;
+          if(!row || !row.id) throw new Error('لم يتم استرجاع معرف المادة من الخادم');
+          newSub = { id: row.id, name, description, code, hours, teacher };
+          showToast('تمت إضافة المادة سحابياً','success');
+        }catch(err){
+          showErrorDetail('تعذر إضافة المادة', err);
+          return; // لا نضيف محلياً عند فشل السحابي في النمط "الأفضل"
         }
+      } else {
+        // بدون اتصال: نضيف محلياً بمعرف مؤقت سيتم استبداله لاحقاً عند "رفع المواد غير المتزامنة"
+        const tempId = 'temp_'+Date.now();
+        newSub = { id: tempId, name, description, code, hours, teacher, _meta:{ category:addCtx.category, yearKey:addCtx.yearKey, termOrType:addCtx.termOrType } };
+        showToast('تمت الإضافة محلياً (غير متزامنة)','info');
       }
-      // search university
-      for (const k in organizedSubjects.university){
-        const f = organizedSubjects.university[k].find(s=>s.id===subId);
-        if (f) return f;
+
+      // ضعها في مكانها
+      if(addCtx.category==='academic'){
+        organized.academic[addCtx.yearKey][addCtx.termOrType].push(newSub);
+        renderSubjectsList('list_y_'+addCtx.termOrType, organized.academic[addCtx.yearKey][addCtx.termOrType]);
+      } else {
+        organized.university[addCtx.termOrType].push(newSub);
+        renderSubjectsList('list_u_'+addCtx.termOrType, organized.university[addCtx.termOrType]);
       }
-      return null;
+      persistOrganized();
+      updateCounters();
+      closeAddModal();
     }
-    function viewSubjectDetails(subId){
-      const s=findSubjectById(subId); if(!s) return;
-      currentSubjectForFiles = s;
-      const m=document.getElementById('subjectDetailsModal'); m.classList.remove('hidden'); m.classList.add('flex');
-      document.getElementById('subjectDetailsTitle').textContent=s.name;
-      document.getElementById('subjectDetailsContent').innerHTML = `
-        <div class="mb-2 text-gray-700">${s.description}</div>
-        <div class="grid grid-cols-2 gap-3 text-sm text-gray-600">
-          <div><i class="fas fa-code ml-1"></i>رمز: ${s.code}</div>
-          <div><i class="fas fa-clock ml-1"></i>ساعات: ${s.hours}</div>
-          <div><i class="fas fa-user ml-1"></i>أستاذ: ${s.teacher}</div>
+
+    // فتح تفاصيل مادة
+    function openSubject(id){
+      const s = findSubjectById(id); if(!s) return;
+      currentSubject = s;
+      const m=document.getElementById('subjectModal'); m.classList.remove('hidden'); m.classList.add('flex');
+      document.getElementById('subjectTitle').textContent = s.name + (s.id.startsWith('temp_') ? ' — (غير متزامنة)' : '');
+      document.getElementById('subjectInfo').innerHTML = `
+        <div class="text-slate-700 mb-1">${s.description||''}</div>
+        <div class="grid md:grid-cols-3 gap-2 text-sm text-slate-600">
+          <div><i class="fas fa-code ml-1"></i> رمز: ${s.code||'-'}</div>
+          <div><i class="fas fa-clock ml-1"></i> ساعات: ${s.hours||'-'}</div>
+          <div><i class="fas fa-user ml-1"></i> أستاذ: ${s.teacher||'-'}</div>
         </div>`;
     }
-    function closeSubjectDetailsModal(){
-      const m=document.getElementById('subjectDetailsModal'); m.classList.add('hidden'); m.classList.remove('flex');
-    }
+    function closeSubjectModal(){ const m=document.getElementById('subjectModal'); m.classList.add('hidden'); m.classList.remove('flex'); }
 
-    function quickOpenFiles(ev, subId, type){
-      ev.stopPropagation();
-      const s=findSubjectById(subId); if(!s) return; currentSubjectForFiles=s; openSubjectFiles(type);
-    }
+    // فتح الملفات
+    function quickFiles(subId, type){ const s=findSubjectById(subId); if(!s) return; currentSubject=s; openFiles(type); }
+    async function openFiles(type){
+      if(!currentSubject) return;
+      currentFilesType = type;
+      document.getElementById('filesTitle').textContent = `${type==='slides'?'السلايدات':type==='summaries'?'التلخيصات':'الريكوردات'} — ${currentSubject.name}`;
+      const list=document.getElementById('filesList'); list.innerHTML=`<div class="text-slate-500 py-4">جاري التحميل...</div>`;
+      const btnAdd=document.getElementById('btnAddFile');
 
-    async function openSubjectFiles(type){
-      if (!currentSubjectForFiles) return;
-      currentFileType = type;
-      const titleMap={slides:'السلايدات', summaries:'التلاخيص', recordings:'الريكوردات'};
-      document.getElementById('filesModalTitle').textContent = `${titleMap[type]} - ${currentSubjectForFiles.name}`;
-      const c=document.getElementById('subjectFilesContent'); c.innerHTML = `<div class="text-gray-500">جاري التحميل...</div>`;
-      const addBtn=document.getElementById('addFileBtn'); addBtn.classList.toggle('hidden', !isAdmin);
+      // التحكم في زر الإضافة
+      const canAdd = isAdmin && !!supabaseClient && !String(currentSubject.id).startsWith('temp_');
+      btnAdd.classList.toggle('hidden', !canAdd);
 
-      let files=[];
-      if (supabaseClient){
-        try{
-          const { data, error } = await supabaseClient.from('subject_files').select('*').eq('subject_id', currentSubjectForFiles.id).eq('type', type).order('created_at', {ascending:false});
-          if (!error) files = data || [];
-        }catch(e){/* ignore */}
-      }
-      // Render
-      if (!files.length){
-        c.innerHTML=`<div class="text-center text-gray-500 py-6"><i class="fas fa-folder-open text-3xl mb-2"></i><p>لا توجد ملفات</p></div>`;
+      if(String(currentSubject.id).startsWith('temp_')){
+        list.innerHTML = `<div class="text-center text-slate-500 py-6">
+          <i class="fas fa-triangle-exclamation text-2xl mb-2 text-rose-500"></i>
+          <div>هذه المادة غير متزامنة بعد. اضغط "رفع المواد غير المتزامنة" ثم أعد المحاولة.</div>
+        </div>`;
+      } else if (!supabaseClient){
+        list.innerHTML = `<div class="text-center text-slate-500 py-6">
+          <i class="fas fa-plug text-2xl mb-2"></i>
+          <div>أدخل إعدادات Supabase أولاً.</div>
+        </div>`;
       } else {
-        c.innerHTML = '';
-        files.forEach(f=>{
-          const row=document.createElement('div');
-          row.className='flex items-center justify-between p-3 bg-gray-50 rounded-lg';
-          row.innerHTML = `
-            <div class="flex items-center">
-              <i class="fas fa-file text-gray-600 ml-3"></i>
-              <div>
-                <div class="font-semibold text-gray-800">${f.name}</div>
-                <div class="text-xs text-gray-500">${new Date(f.created_at).toLocaleDateString('ar-SA')}</div>
-              </div>
-            </div>
-            <div class="flex gap-2">
-              <a href="${f.url}" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:text-blue-800"><i class="fas fa-up-right-from-square"></i></a>
-              ${isAdmin?`<button onclick="deleteFile('${f.id}')" class="text-red-600 hover:text-red-800"><i class="fas fa-trash"></i></button>`:''}
-            </div>`;
-          c.appendChild(row);
-        });
-      }
-
-      const m=document.getElementById('subjectFilesModal'); m.classList.remove('hidden'); m.classList.add('flex');
-    }
-    function closeSubjectFilesModal(){ const m=document.getElementById('subjectFilesModal'); m.classList.add('hidden'); m.classList.remove('flex'); currentFileType=null; }
-    async function addNewFile(){
-      if (!isAdmin){ showNotification('الإضافة للمدير فقط','error'); return; }
-      if (!currentSubjectForFiles || !currentFileType){ showNotification('افتح قسم الملفات أولاً','error'); return; }
-      const name = prompt('اسم الملف:'); if (!name) return;
-      const url  = prompt('رابط الملف (https):'); if (!url) return;
-      if (supabaseClient){
         try{
-          const { error } = await supabaseClient.from('subject_files').insert([{ subject_id: currentSubjectForFiles.id, type: currentFileType, name, url }]);
+          const { data, error } = await supabaseClient.from('subject_files')
+            .select('*')
+            .eq('subject_id', currentSubject.id)
+            .eq('type', type)
+            .order('created_at',{ascending:false});
           if (error) throw error;
-          showNotification('تمت إضافة الملف','success');
-        }catch(e){ console.warn(e); showNotification('تعذر إضافة الملف','error'); }
-      } else {
-        showNotification('الملفات تُحفظ في Supabase فقط. فعّل الاتصال أولاً','info');
+          if(!data || !data.length){
+            list.innerHTML = `<div class="text-center text-slate-500 py-6"><i class="fas fa-folder-open text-2xl mb-2"></i><div>لا توجد ملفات</div></div>`;
+          } else {
+            list.innerHTML = '';
+            data.forEach(f=>{
+              const row=document.createElement('div');
+              row.className='flex items-center justify-between p-3 bg-slate-50 rounded-lg';
+              row.innerHTML = `
+                <div class="flex items-center">
+                  <i class="fas fa-file text-slate-600 ml-3"></i>
+                  <div>
+                    <div class="font-semibold text-slate-800">${f.name}</div>
+                    <div class="text-xs text-slate-500">${new Date(f.created_at).toLocaleString('ar-SA')}</div>
+                  </div>
+                </div>
+                <div class="flex items-center gap-2">
+                  <a href="${f.url}" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:text-blue-800"><i class="fas fa-up-right-from-square"></i></a>
+                  ${isAdmin?`<button class="text-rose-600 hover:text-rose-800" onclick="deleteFile('${f.id}')"><i class="fas fa-trash"></i></button>`:''}
+                </div>`;
+              list.appendChild(row);
+            });
+          }
+        }catch(err){ showErrorDetail('تعذر تحميل الملفات', err); list.innerHTML = `<div class="text-center text-rose-600 py-4 text-sm">فشل التحميل.</div>`; }
       }
-      openSubjectFiles(currentFileType);
+
+      const m=document.getElementById('filesModal'); m.classList.remove('hidden'); m.classList.add('flex');
+    }
+    function closeFilesModal(){ const m=document.getElementById('filesModal'); m.classList.add('hidden'); m.classList.remove('flex'); currentFilesType=null; }
+
+    // إضافة ملف
+    async function addNewFile(){
+      if(!isAdmin) return showToast('الإضافة للمدير فقط','error');
+      if(!supabaseClient) return showToast('أدخل إعدادات Supabase أولاً','error');
+      if(!currentSubject || !currentFilesType) return;
+      if(String(currentSubject.id).startsWith('temp_')) return showToast('هذه المادة غير متزامنة. ارفعها أولاً','error');
+
+      const name = prompt('اسم الملف:'); if(!name) return;
+      const url = prompt('رابط الملف (https):'); if(!url) return;
+      if(!/^https?:\/\//i.test(url)) return showToast('الرابط يجب أن يبدأ بـ https://','error');
+
+      try{
+        const { error } = await supabaseClient.from('subject_files').insert([{ subject_id: currentSubject.id, type: currentFilesType, name, url }]);
+        if (error) throw error;
+        showToast('تمت إضافة الملف','success');
+        openFiles(currentFilesType);
+      }catch(err){ showErrorDetail('تعذر إضافة الملف', err); }
     }
     async function deleteFile(fileId){
-      if (!confirm('حذف الملف؟')) return;
+      if(!confirm('حذف الملف؟')) return;
       try{
         const { error } = await supabaseClient.from('subject_files').delete().eq('id', fileId);
         if (error) throw error;
-        showNotification('تم حذف الملف','success');
-      }catch(e){ showNotification('تعذر الحذف','error'); }
-      openSubjectFiles(currentFileType);
+        showToast('تم حذف الملف','success');
+        openFiles(currentFilesType);
+      }catch(err){ showErrorDetail('تعذر حذف الملف', err); }
     }
 
-    // Sync with Supabase for subjects
-    async function syncSubjects(){
-      if (!supabaseClient){ showNotification('أدخل إعدادات Supabase أولاً','error'); return; }
+    // مزامنة المواد من Supabase -> محلي
+    async function syncSubjectsPull(){
+      if(!supabaseClient) return showToast('أدخل إعدادات Supabase أولاً','error');
       try{
-        // Pull subjects
-        const { data, error } = await supabaseClient.from('subjects').select('*').limit(1000);
-        if (error) throw error;
-        // Rebuild organizedSubjects
+        const { data, error } = await supabaseClient.from('subjects').select('*').order('updated_at',{ascending:false}).limit(1500);
+        if(error) throw error;
         const fresh = {
           academic: {
             year1:{semester1:[], semester2:[], summer:[]},
@@ -1178,110 +704,113 @@
           },
           university: { required:[], elective:[] }
         };
-        (data||[]).forEach(row=>{
-          const sub = { id: row.id, name: row.name, description: row.description, code: row.code, hours: row.hours, teacher: row.teacher };
-          if (row.category==='academic' && row.year && row.term){
-            const y='year'+row.year; fresh.academic[y][row.term].push(sub);
-          } else if (row.category==='university' && row.uni_type){
-            fresh.university[row.uni_type].push(sub);
-          }
+        (data||[]).forEach(r=>{
+          const sub = { id:r.id, name:r.name, description:r.description, code:r.code, hours:r.hours, teacher:r.teacher };
+          if(r.category==='academic' && r.year && r.term){ const y='year'+r.year; fresh.academic[y][r.term].push(sub); }
+          if(r.category==='university' && r.uni_type){ fresh.university[r.uni_type].push(sub); }
         });
-        organizedSubjects = fresh;
-        localStorage.setItem('organizedSubjects', JSON.stringify(organizedSubjects));
-        showNotification('تمت مزامنة المواد','success');
-        // refresh opened containers if any
-        ['year1','year2','year3','year4','year5','year6'].forEach(y=>['semester1','semester2','summer'].forEach(t=>{
-          const box=document.getElementById(y+t+'Content'); if (box && !box.classList.contains('hidden')) loadSemesterSubjects(y,t);
-        }));
-        ['required','elective'].forEach(t=>{
-          const box=document.getElementById(t+'Content'); if (box && !box.classList.contains('hidden')) loadUniversityCategorySubjects(t);
-        });
+        organized = fresh;
+        persistOrganized();
+        // إعادة العرض إذا لوحات مفتوحة
+        if(currentYearKey) openYear(currentYearKey);
+        else { renderSubjectsList('list_y_semester1', []); renderSubjectsList('list_y_semester2', []); renderSubjectsList('list_y_summer', []); }
+        renderSubjectsList('list_u_required', organized.university.required);
+        renderSubjectsList('list_u_elective', organized.university.elective);
         updateCounters();
-      }catch(e){ console.error(e); showNotification('تعذر مزامنة المواد','error'); }
+        showToast('تمت مزامنة المواد','success');
+      }catch(err){ showErrorDetail('تعذر مزامنة المواد', err); }
     }
-    async function syncFilesPreview(){
-      if (!supabaseClient){ showNotification('أدخل إعدادات Supabase أولاً','error'); return; }
-      try{
-        const { count, error } = await supabaseClient.from('subject_files').select('*', { count:'exact', head:true });
-        if (error) throw error;
-        showNotification(`إجمالي الملفات: ${count||0}`,'info');
-        document.getElementById('filesCounter').textContent = count||0;
-      }catch(e){ showNotification('تعذر جلب عدد الملفات','error'); }
-    }
-    async function syncAll(){ await syncSubjects(); await syncFilesPreview(); }
 
-    // Counters
+    // رفع المواد غير المتزامنة: يستبدل temp_* بمعرّف Supabase الحقيقي
+    async function pushOfflineSubjectsToSupabase(){
+      if(!supabaseClient) return showToast('أدخل إعدادات Supabase أولاً','error');
+      if(!isAdmin) return showToast('للمدير فقط','error');
+
+      let pushed=0, replaced=0, errors=0;
+
+      // دالة مساعدة لاستبدال المعرف داخل القوائم
+      function replaceIdInList(list, oldId, newId){
+        const idx=list.findIndex(s=>s.id===oldId);
+        if(idx>-1){ list[idx].id=newId; if(list[idx]._meta) delete list[idx]._meta; replaced++; }
+      }
+
+      // ارفع في الأكاديمي
+      for(const y of ['year1','year2','year3','year4','year5','year6']){
+        for(const t of ['semester1','semester2','summer']){
+          const arr=organized.academic[y][t];
+          for(const s of [...arr]){
+            if(String(s.id).startsWith('temp_') && s._meta){
+              try{
+                const payload={
+                  name:s.name, description:s.description, hours:s.hours, code:s.code, teacher:s.teacher,
+                  category:'academic', year:parseInt(y.replace('year','')), term:t, updated_at:new Date().toISOString()
+                };
+                const { data, error } = await supabaseClient.from('subjects').insert([payload]).select().limit(1);
+                if(error) throw error;
+                pushed++;
+                const realId = data && data[0] && data[0].id;
+                replaceIdInList(arr, s.id, realId);
+              }catch(err){ errors++; showErrorDetail('فشل رفع مادة غير متزامنة', err); }
+            }
+          }
+        }
+      }
+      // ارفع في الجامعة
+      for(const k of ['required','elective']){
+        const arr=organized.university[k];
+        for(const s of [...arr]){
+          if(String(s.id).startsWith('temp_') && s._meta){
+            try{
+              const payload={
+                name:s.name, description:s.description, hours:s.hours, code:s.code, teacher:s.teacher,
+                category:'university', uni_type:k, updated_at:new Date().toISOString()
+              };
+              const { data, error } = await supabaseClient.from('subjects').insert([payload]).select().limit(1);
+              if(error) throw error;
+              pushed++;
+              const realId = data && data[0] && data[0].id;
+              replaceIdInList(arr, s.id, realId);
+            }catch(err){ errors++; showErrorDetail('فشل رفع مادة غير متزامنة', err); }
+          }
+        }
+      }
+
+      persistOrganized();
+      if(currentYearKey) openYear(currentYearKey); else openUniversity('required');
+      updateCounters();
+      if(pushed>0 && errors===0) showToast(`تم رفع ${pushed} مادة غير متزامنة واستبدال معرفاتها`,`success`);
+      else if (pushed>0) showToast(`تم رفع ${pushed} مادة، أخطاء: ${errors}`,'info');
+      else showToast('لا توجد مواد غير متزامنة','info');
+    }
+
+    // أدوات مساعدة للمواد
+    function persistOrganized(){ localStorage.setItem('organizedSubjects', JSON.stringify(organized)); }
+    function findSubjectById(id){
+      // أكاديمي
+      for(const y of ['year1','year2','year3','year4','year5','year6']){
+        for(const t of ['semester1','semester2','summer']){
+          const f = organized.academic[y][t].find(s=>s.id===id);
+          if(f) return f;
+        }
+      }
+      // جامعة
+      for(const k of ['required','elective']){
+        const f = organized.university[k].find(s=>s.id===id);
+        if(f) return f;
+      }
+      return null;
+    }
     function updateCounters(){
       let total=0;
-      for (const y in organizedSubjects.academic){ for (const t in organizedSubjects.academic[y]) total += organizedSubjects.academic[y][t].length; }
-      total += organizedSubjects.university.required.length + organizedSubjects.university.elective.length;
-      document.getElementById('subjectsCounter').textContent = total;
-    }
-
-    // GPA
-    function updateGPA(){
-      let pts=0, hrs=0;
-      gpaEntries.forEach(e=>{ pts += e.hours*e.grade; hrs += e.hours; });
-      const gpa = hrs>0 ? (pts/hrs).toFixed(2) : '0.00';
-      document.getElementById('gpaResult').textContent=gpa;
-      const c=document.getElementById('gpaSubjects'); c.innerHTML='';
-      if (gpaEntries.length){
-        const s=document.createElement('div');
-        s.className='p-3 bg-blue-50 border border-blue-200 rounded-lg text-sm text-blue-800 mb-2';
-        s.innerHTML=`<div class="flex justify-between"><span>إجمالي النقاط</span><span>${pts.toFixed(2)}</span></div>
-                     <div class="flex justify-between"><span>إجمالي الساعات</span><span>${hrs}</span></div>
-                     <div class="flex justify-between border-t mt-1 pt-1"><span>GPA</span><span class="font-bold">${gpa}</span></div>`;
-        c.appendChild(s);
+      for(const y of ['year1','year2','year3','year4','year5','year6']){
+        for(const t of ['semester1','semester2','summer']) total += organized.academic[y][t].length;
       }
-      gpaEntries.forEach((e,i)=>{
-        const row=document.createElement('div');
-        row.className='flex items-center justify-between p-3 bg-gray-50 rounded-lg';
-        row.innerHTML=`<div><div class="font-semibold text-gray-800">${e.name}</div><div class="text-sm text-gray-600">${e.hours}×${e.grade}=${(e.hours*e.grade).toFixed(2)}</div></div>
-          <button onclick="removeGPA(${i})" class="text-red-600 hover:text-red-800"><i class="fas fa-times"></i></button>`;
-        c.appendChild(row);
-      });
-      localStorage.setItem('gpaEntries', JSON.stringify(gpaEntries));
+      total += organized.university.required.length + organized.university.elective.length;
+      document.getElementById('subjectsCount').textContent = total;
+      // عدد الملفات (سجّل آخر نتيجة فقط — لجلب العدد الحقيقي استخدم استعلام count من Supabase)
+      document.getElementById('filesCount').textContent = document.getElementById('filesCount').textContent || '0';
     }
-    function addSubjectToGPA(){
-      const name=document.getElementById('gpaSubjectName').value.trim();
-      const hours=parseFloat(document.getElementById('creditHours').value);
-      const grade=parseFloat(document.getElementById('grade').value);
-      if(!name||!hours||!grade) return;
-      gpaEntries.push({id:Date.now(),name,hours,grade,updated_at:new Date().toISOString()});
-      document.getElementById('gpaSubjectName').value=''; document.getElementById('creditHours').value=''; document.getElementById('grade').value='';
-      updateGPA();
-    }
-    function removeGPA(i){ gpaEntries.splice(i,1); updateGPA(); }
-
-    // Tasks
-    function loadTasks(){
-      const c=document.getElementById('tasksList'); c.innerHTML='';
-      tasks.forEach((t,i)=>{
-        const row=document.createElement('div');
-        row.className=`flex items-center justify-between p-3 ${t.completed?'bg-green-50':'bg-gray-50'} rounded-xl`;
-        row.innerHTML=`<div class="flex items-center">
-          <input type="checkbox" ${t.completed?'checked':''} onchange="toggleTask(${i})" class="ml-3">
-          <span class="${t.completed?'line-through text-gray-500':'text-gray-800'}">${t.text}</span></div>
-          <button onclick="deleteTask(${i})" class="text-red-500 hover:text-red-700"><i class="fas fa-trash"></i></button>`;
-        c.appendChild(row);
-      });
-      localStorage.setItem('tasks', JSON.stringify(tasks));
-    }
-    function addTask(){ const i=document.getElementById('newTask'); if(!i.value.trim()) return; tasks.push({id:Date.now(),text:i.value.trim(),completed:false}); i.value=''; loadTasks(); }
-    function toggleTask(i){ tasks[i].completed=!tasks[i].completed; loadTasks(); }
-    function deleteTask(i){ tasks.splice(i,1); loadTasks(); showNotification('تم حذف المهمة','info'); }
-
-    // Timer
-    let timerInterval=null, timerMinutes=25, timerSeconds=0, isTimerRunning=false;
-    function startTimer(){ if (isTimerRunning) return; isTimerRunning=true; timerInterval=setInterval(()=>{ if(timerSeconds===0){ if(timerMinutes===0){ resetTimer(); showNotification('انتهى الوقت','info'); return;} timerMinutes--; timerSeconds=59;} else timerSeconds--; updateTimerDisplay(); },1000); }
-    function pauseTimer(){ isTimerRunning=false; clearInterval(timerInterval); }
-    function resetTimer(){ isTimerRunning=false; clearInterval(timerInterval); timerMinutes=25; timerSeconds=0; updateTimerDisplay(); }
-    function setCustomTimer(){ const cm=document.getElementById('customMinutes'); if(cm.value){ timerMinutes=parseInt(cm.value); timerSeconds=0; updateTimerDisplay(); cm.value=''; } }
-    function updateTimerDisplay(){ const d=document.getElementById('timerDisplay'); const m=String(timerMinutes).padStart(2,'0'), s=String(timerSeconds).padStart(2,'0'); d.textContent=`${m}:${s}`; }
-
-    // Keyboard send
-    document.addEventListener('keypress',(e)=>{ if(e.key==='Enter'){ const i=document.getElementById('messageInput'); if(i && !i.disabled) sendMessage(); } });
 
   </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'984661a3040332aa',t:'MTc1ODc1OTg5NS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9846c6ef235232aa',t:'MTc1ODc2NDA0NC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
